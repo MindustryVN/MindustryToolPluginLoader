@@ -68,7 +68,7 @@ public class PluginUpdater {
         System.out.println("Downloading updated plugin...");
         HttpRequest downloadRequest = HttpRequest.newBuilder()
                 .uri(URI.create(downloadUrl))
-                .setHeader("Accept", "application/octet-stream")
+                .header("Accept", "application/octet-stream")
                 .build();
 
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
