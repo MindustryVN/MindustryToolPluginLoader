@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.pf4j.PluginManager;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.*;
 import java.nio.file.*;
@@ -23,6 +24,14 @@ public class PluginUpdater {
 
     public PluginUpdater(PluginManager pluginManager) {
         this.pluginManager = pluginManager;
+
+        if (!Files.exists(Paths.get(PLUGIN_DIR))) {
+            try {
+                Files.createDirectories(Paths.get(PLUGIN_DIR));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void checkAndUpdate() throws Exception {
