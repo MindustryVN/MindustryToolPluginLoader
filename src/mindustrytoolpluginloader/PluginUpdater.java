@@ -50,7 +50,7 @@ public class PluginUpdater {
             return;
         }
 
-        String downloadUrl = assets.get(0).get("browser_download_url").asText();
+        String downloadUrl = assets.get(0).get("url").asText();
         String updatedAt = assets.get(0).get("updated_at").asText();
 
         String lastUpdated = null;
