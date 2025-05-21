@@ -15,7 +15,7 @@ public class PluginUpdater {
 
     private static final String GITHUB_API = "https://api.github.com/repos/MindustryVN/MindustryToolPlugin/releases/latest";
     private static final String PLUGIN_DIR = "plugins";
-    private static final String PLUGIN_NAME = "MindustryToolPlugin.zip";
+    private static final String PLUGIN_NAME = "MindustryToolPlugin.jar";
     private static final Path PLUGIN_PATH = Paths.get(PLUGIN_DIR, PLUGIN_NAME);
     private static final Path METADATA_PATH = Paths.get("plugin-meta.json");
 
