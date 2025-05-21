@@ -74,6 +74,11 @@ public class PluginUpdater {
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
                 HttpResponse.BodyHandlers.ofFile(PLUGIN_PATH));
 
+        if (downloadResponse.statusCode() >= 300) {
+            System.out.println("Failed to download plugin: " + downloadResponse.statusCode());
+            return;
+        }
+
         System.out.println("Downloaded to " + downloadResponse.body());
 
         // Unload current plugin if already loaded
