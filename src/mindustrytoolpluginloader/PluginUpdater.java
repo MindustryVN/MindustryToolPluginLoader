@@ -6,7 +6,9 @@ import org.pf4j.PluginManager;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Objects;
@@ -50,7 +52,6 @@ public class PluginUpdater {
             return;
         }
 
-        String downloadUrl = assets.get(0).get("browser_download_url").asText();
         String updatedAt = assets.get(0).get("updated_at").asText();
 
         String lastUpdated = null;
@@ -67,8 +68,8 @@ public class PluginUpdater {
         // Download new plugin
         System.out.println("Downloading updated plugin...");
         HttpRequest downloadRequest = HttpRequest.newBuilder()
-                .uri(URI.create(downloadUrl))
-                .header("Accept", "application/octet-stream")
+                .uri(URI.create("https://api.mindustry-tool/api/v3/plugins/download?path="
+                        + URLEncoder.encode(GITHUB_API, StandardCharsets.UTF_8)))
                 .build();
 
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
