@@ -60,6 +60,7 @@ public class PluginUpdater {
         HttpRequest downloadRequest = HttpRequest.newBuilder()
                 .uri(URI.create(downloadUrl))
                 .build();
+
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
                 HttpResponse.BodyHandlers.ofFile(PLUGIN_PATH));
 
@@ -79,6 +80,14 @@ public class PluginUpdater {
         // Load new version
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
+
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+
+        for (var extension : extensions) {
+            extension.init();
+            extension.registerClientCommands(MindustryToolPluginLoader.clientCommandHandler);
+            extension.registerServerCommands(MindustryToolPluginLoader.serverCommandHandler);
+        }
 
         // Save updated metadata
         String metaJson = objectMapper.createObjectNode()

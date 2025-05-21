@@ -9,10 +9,12 @@ import mindustry.mod.Plugin;
 
 public class MindustryToolPluginLoader extends Plugin {
 
+    public static CommandHandler clientCommandHandler;
+    public static CommandHandler serverCommandHandler;
+
     @Override
     public void init() {
         PluginManager pluginManager = new DefaultPluginManager();
-
         PluginUpdater updater = new PluginUpdater(pluginManager);
 
         Timer.schedule(() -> {
@@ -26,11 +28,11 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void registerServerCommands(CommandHandler handler) {
-
+        serverCommandHandler = handler;
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler) {
-
+        clientCommandHandler = handler;
     }
 }
