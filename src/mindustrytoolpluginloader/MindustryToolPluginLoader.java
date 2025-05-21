@@ -24,6 +24,8 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }, 0, 60 * 60);
+
+        System.out.println("MindustryToolPluginLoader initialized");
     }
 
     @Override
