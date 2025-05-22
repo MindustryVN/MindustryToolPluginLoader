@@ -93,10 +93,11 @@ public class PluginUpdater {
         // Load new version
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
-
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
+        System.out.println("Loaded plugins: " + loadedPlugins);
         for (var extension : extensions) {
+            System.out.println("Init plugin: " + extension.getClass().getName());
             extension.init();
             extension.registerClientCommands(MindustryToolPluginLoader.clientCommandHandler);
             extension.registerServerCommands(MindustryToolPluginLoader.serverCommandHandler);
