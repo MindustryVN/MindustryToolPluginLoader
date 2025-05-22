@@ -94,6 +94,8 @@ public class PluginUpdater {
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + GITHUB_API))
                 .build();
 
+        Files.delete(PLUGIN_PATH);
+
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
                 HttpResponse.BodyHandlers.ofFile(PLUGIN_PATH));
 
