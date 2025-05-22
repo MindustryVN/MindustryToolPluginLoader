@@ -94,14 +94,16 @@ public class PluginUpdater {
         // Load new version
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+        var extensions = pluginManager.getExtensions(pluginId);
 
         System.out.println("Loaded plugins: " + loadedPlugins);
         for (var extension : extensions) {
             System.out.println("Init plugin: " + extension.getClass().getName());
-            extension.init();
-            extension.registerClientCommands(MindustryToolPluginLoader.clientCommandHandler);
-            extension.registerServerCommands(MindustryToolPluginLoader.serverCommandHandler);
+            if (extension instanceof MindustryToolPlugin p) {
+                p.init();
+                p.registerClientCommands(MindustryToolPluginLoader.clientCommandHandler);
+                p.registerServerCommands(MindustryToolPluginLoader.serverCommandHandler);
+            }
         }
 
         // Save updated metadata
