@@ -70,7 +70,7 @@ public class PluginUpdater {
     public void checkAndUpdate() throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path="
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
                         + GITHUB_API))
                 .build();
 
