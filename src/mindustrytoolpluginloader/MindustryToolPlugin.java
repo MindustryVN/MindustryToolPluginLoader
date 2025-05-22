@@ -1,8 +1,10 @@
 package mindustrytoolpluginloader;
 
+import org.pf4j.ExtensionPoint;
+
 import arc.util.CommandHandler;
 
-public interface MindustryToolPlugin {
+public interface MindustryToolPlugin extends ExtensionPoint {
 
     public void init();
 
