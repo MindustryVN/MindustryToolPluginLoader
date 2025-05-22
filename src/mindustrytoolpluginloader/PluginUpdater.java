@@ -58,7 +58,7 @@ public class PluginUpdater {
             lastUpdated = meta.path("updated_at").asText(null);
         }
 
-        if (Objects.equals(updatedAt, lastUpdated)) {
+        if (Objects.equals(updatedAt, lastUpdated) && Files.exists(PLUGIN_PATH)) {
             System.out.println("Plugin is up to date.");
             return;
         }
