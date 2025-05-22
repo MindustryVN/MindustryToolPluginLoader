@@ -70,28 +70,21 @@ public class PluginUpdater {
     public void checkAndUpdate() throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(GITHUB_API))
-                .header("Accept", "application/vnd.github+json")
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path="
+                        + GITHUB_API))
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        JsonNode release = objectMapper.readTree(response.body());
-
-        JsonNode assets = release.get("assets");
-        if (assets == null || !assets.isArray() || assets.isEmpty()) {
-            System.out.println("No assets found in release.");
-            return;
-        }
-
-        String updatedAt = assets.get(0).get("updated_at").asText();
+        String updatedAt = response.body();
 
         String lastUpdated = null;
+
         if (Files.exists(METADATA_PATH)) {
             JsonNode meta = objectMapper.readTree(Files.readString(METADATA_PATH));
             lastUpdated = meta.path("updated_at").asText(null);
         }
 
-        if (Objects.equals(updatedAt, lastUpdated) && Files.exists(PLUGIN_PATH)) {
+        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(PLUGIN_PATH)) {
             System.out.println("Plugin is up to date.");
             return;
         }

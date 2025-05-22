@@ -23,7 +23,7 @@ public class MindustryToolPluginLoader extends Plugin {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 60 * 60);
+        }, 0, 60 * 5);
 
         System.out.println("MindustryToolPluginLoader initialized");
     }
