@@ -85,7 +85,6 @@ public class PluginUpdater {
         }
 
         if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(PLUGIN_PATH)) {
-            System.out.println("Plugin is up to date.");
             return;
         }
 
