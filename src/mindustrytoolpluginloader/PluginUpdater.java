@@ -108,6 +108,12 @@ public class PluginUpdater {
 
         System.out.println("Downloaded to " + downloadResponse.body());
 
+        // Save updated metadata
+        String metaJson = objectMapper.createObjectNode()
+                .put("updated_at", updatedAt)
+                .toPrettyString();
+        Files.writeString(METADATA_PATH, metaJson);
+
         // Unload current plugin if already loaded
         List<String> loadedPlugins = pluginManager.getPlugins().stream()
                 .filter(p -> PLUGIN_PATH.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
@@ -130,12 +136,6 @@ public class PluginUpdater {
             System.out.println("Init plugin: " + extension.getClass().getName());
             extension.init();
         }
-
-        // Save updated metadata
-        String metaJson = objectMapper.createObjectNode()
-                .put("updated_at", updatedAt)
-                .toPrettyString();
-        Files.writeString(METADATA_PATH, metaJson);
 
         System.out.println("Plugin updated and reloaded.");
     }
