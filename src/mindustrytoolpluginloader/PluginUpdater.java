@@ -38,6 +38,9 @@ public class PluginUpdater {
     }
 
     public void init() {
+        if (!Files.exists(PLUGIN_PATH)) {
+            return;
+        }
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
