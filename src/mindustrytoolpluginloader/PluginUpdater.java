@@ -88,6 +88,7 @@ public class PluginUpdater {
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
+            System.out.println("Unloaded plugin: " + pluginId);
         }
 
         // Load new version
