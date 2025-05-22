@@ -15,6 +15,8 @@ public class MindustryToolPluginLoader extends Plugin {
     @Override
     public void init() {
 
+        updater.init();
+
         Timer.schedule(() -> {
             try {
                 updater.checkAndUpdate();

@@ -35,7 +35,9 @@ public class PluginUpdater {
                 e.printStackTrace();
             }
         }
+    }
 
+    public void init() {
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
