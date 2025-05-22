@@ -2,6 +2,9 @@ package mindustrytoolpluginloader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import arc.util.CommandHandler;
+
 import org.pf4j.PluginManager;
 
 import java.io.IOException;
@@ -31,6 +34,31 @@ public class PluginUpdater {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
+        pluginManager.startPlugin(pluginId);
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+
+        for (var extension : extensions) {
+            System.out.println("Init plugin: " + extension.getClass().getName());
+            extension.init();
+        }
+    }
+
+    public void registerClientCommands(CommandHandler handler) {
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
+
+        for (var extension : extensions) {
+            extension.registerClientCommands(handler);
+        }
+    }
+
+    public void registerServerCommands(CommandHandler handler) {
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
+
+        for (var extension : extensions) {
+            extension.registerServerCommands(handler);
         }
     }
 
@@ -94,16 +122,12 @@ public class PluginUpdater {
         // Load new version
         String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
         pluginManager.startPlugin(pluginId);
-        var extensions = pluginManager.getExtensions(pluginId);
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
         System.out.println("Loaded plugins: " + loadedPlugins);
         for (var extension : extensions) {
             System.out.println("Init plugin: " + extension.getClass().getName());
-            if (extension instanceof MindustryToolPlugin p) {
-                p.init();
-                p.registerClientCommands(MindustryToolPluginLoader.clientCommandHandler);
-                p.registerServerCommands(MindustryToolPluginLoader.serverCommandHandler);
-            }
+            extension.init();
         }
 
         // Save updated metadata
