@@ -115,7 +115,7 @@ public class PluginUpdater {
         }
 
         // Download new plugin
-        System.out.println("Downloading updated plugin...");
+        System.out.println("Downloading updated plugin: " + plugin.name);
         HttpRequest downloadRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
                 .build();
