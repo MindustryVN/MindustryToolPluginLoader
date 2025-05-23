@@ -128,7 +128,7 @@ public class PluginUpdater {
                 HttpResponse.BodyHandlers.ofFile(path));
 
         if (downloadResponse.statusCode() >= 300) {
-            System.out.println("Failed to download plugin: " + downloadResponse.statusCode());
+            System.out.println("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
             return;
         }
 
@@ -153,7 +153,7 @@ public class PluginUpdater {
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
-            System.out.println("Unloaded plugin: " + pluginId);
+            System.out.println("Unloaded plugin: " + plugin.name);
         }
 
         // Load new version
@@ -163,10 +163,10 @@ public class PluginUpdater {
 
         System.out.println("Loaded plugins: " + loadedPlugins);
         for (var extension : extensions) {
-            System.out.println("Init plugin: " + extension.getClass().getName());
+            System.out.println("Init plugin: " + plugin.name + " with extension: " + extension.getClass().getName());
             extension.init();
         }
 
-        System.out.println("Plugin updated and reloaded.");
+        System.out.println("Plugin updated and reloaded: " + plugin.name);
     }
 }
