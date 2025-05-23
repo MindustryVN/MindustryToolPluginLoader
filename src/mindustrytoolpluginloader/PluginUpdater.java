@@ -101,8 +101,8 @@ public class PluginUpdater {
         if (Files.exists(METADATA_PATH)) {
             try {
                 meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
-                if (meta.has(plugin.name) && meta.at(plugin.name).has("updated_at")) {
-                    lastUpdated = meta.at(plugin.name).path("updated_at").asText(null);
+                if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
+                    lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
