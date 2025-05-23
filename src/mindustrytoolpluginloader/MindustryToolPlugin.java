@@ -11,4 +11,7 @@ public interface MindustryToolPlugin extends ExtensionPoint {
     public void registerServerCommands(CommandHandler handler);
 
     public void registerClientCommands(CommandHandler handler);
+
+    public default void onEvent(Object event) {
+    }
 }
