@@ -1,7 +1,7 @@
 package mindustrytoolpluginloader;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import arc.util.CommandHandler;
 
@@ -16,10 +16,14 @@ import java.util.Objects;
 
 public class PluginUpdater {
 
-    private static final String GITHUB_API = "https://api.github.com/repos/MindustryVN/MindustryToolPlugin/releases/latest";
+    public static record PluginData(String name, String url) {
+    }
+
+    private static final List<PluginData> PLUGINS = List.of(
+            new PluginData("ServerController.jar",
+                    "https://api.github.com/repos/MindustryVN/MindustryToolPlugin/releases/latest"));
+
     private static final String PLUGIN_DIR = "config/plugins";
-    private static final String PLUGIN_NAME = "MindustryToolPlugin.jar";
-    private static final Path PLUGIN_PATH = Paths.get(PLUGIN_DIR, PLUGIN_NAME);
     private static final Path METADATA_PATH = Paths.get("config/plugin-meta.json");
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -28,20 +32,28 @@ public class PluginUpdater {
     public PluginUpdater(PluginManager pluginManager) {
         this.pluginManager = pluginManager;
 
-        if (!Files.exists(Paths.get(PLUGIN_DIR))) {
-            try {
+        try {
+            if (!Files.exists(Paths.get(PLUGIN_DIR))) {
                 Files.createDirectories(Paths.get(PLUGIN_DIR));
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public void init() {
-        if (!Files.exists(PLUGIN_PATH)) {
+        for (var plugin : PLUGINS) {
+            initPlugin(plugin);
+        }
+    }
+
+    public void initPlugin(PluginData plugin) {
+        var filePath = Paths.get(PLUGIN_DIR, plugin.name);
+        if (!Files.exists(filePath)) {
             return;
         }
-        String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
+
+        String pluginId = pluginManager.loadPlugin(filePath);
         pluginManager.startPlugin(pluginId);
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
@@ -68,38 +80,52 @@ public class PluginUpdater {
     }
 
     public void checkAndUpdate() throws Exception {
+        for (var plugin : PLUGINS) {
+            checkAndUpdate(plugin);
+        }
+    }
+
+    public void checkAndUpdate(PluginData plugin) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
-                        + GITHUB_API))
+                        + plugin.url))
                 .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         String updatedAt = response.body();
 
         String lastUpdated = null;
+        ObjectNode meta = null;
 
         if (Files.exists(METADATA_PATH)) {
-            JsonNode meta = objectMapper.readTree(Files.readString(METADATA_PATH));
-            lastUpdated = meta.path("updated_at").asText(null);
+            try {
+                meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
+                if (meta.has(plugin.name) && meta.at(plugin.name).has("updated_at")) {
+                    lastUpdated = meta.at(plugin.name).path("updated_at").asText(null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
-        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(PLUGIN_PATH)) {
+        var path = Paths.get(PLUGIN_DIR, plugin.name);
+        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
             return;
         }
 
         // Download new plugin
         System.out.println("Downloading updated plugin...");
         HttpRequest downloadRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + GITHUB_API))
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
                 .build();
 
-        if (Files.exists(PLUGIN_PATH)) {
-            Files.delete(PLUGIN_PATH);
+        if (Files.exists(path)) {
+            Files.delete(path);
         }
 
         HttpResponse<Path> downloadResponse = client.send(downloadRequest,
-                HttpResponse.BodyHandlers.ofFile(PLUGIN_PATH));
+                HttpResponse.BodyHandlers.ofFile(path));
 
         if (downloadResponse.statusCode() >= 300) {
             System.out.println("Failed to download plugin: " + downloadResponse.statusCode());
@@ -108,15 +134,19 @@ public class PluginUpdater {
 
         System.out.println("Downloaded to " + downloadResponse.body());
 
+        if (meta == null) {
+            meta = objectMapper.createObjectNode();
+        }
+
         // Save updated metadata
-        String metaJson = objectMapper.createObjectNode()
-                .put("updated_at", updatedAt)
+        String metaJson = meta
+                .putObject(plugin.name()).put("updated_at", lastUpdated).put("url", plugin.url)
                 .toPrettyString();
         Files.writeString(METADATA_PATH, metaJson);
 
         // Unload current plugin if already loaded
         List<String> loadedPlugins = pluginManager.getPlugins().stream()
-                .filter(p -> PLUGIN_PATH.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
+                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                 .map(p -> p.getPluginId())
                 .toList();
 
@@ -127,7 +157,7 @@ public class PluginUpdater {
         }
 
         // Load new version
-        String pluginId = pluginManager.loadPlugin(PLUGIN_PATH);
+        String pluginId = pluginManager.loadPlugin(path);
         pluginManager.startPlugin(pluginId);
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
