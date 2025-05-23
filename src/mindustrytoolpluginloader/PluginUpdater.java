@@ -139,10 +139,11 @@ public class PluginUpdater {
         }
 
         // Save updated metadata
-        String metaJson = meta
-                .putObject(plugin.name()).put("updated_at", lastUpdated).put("url", plugin.url)
-                .toPrettyString();
-        Files.writeString(METADATA_PATH, metaJson);
+        meta
+                .putObject(plugin.name())
+                .put("updated_at", lastUpdated).put("url", plugin.url);
+
+        Files.writeString(METADATA_PATH, meta.toPrettyString());
 
         // Unload current plugin if already loaded
         List<String> loadedPlugins = pluginManager.getPlugins().stream()
