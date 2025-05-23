@@ -3,7 +3,18 @@ package mindustrytoolpluginloader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import arc.Events;
 import arc.util.CommandHandler;
+import mindustry.game.EventType.BlockBuildEndEvent;
+import mindustry.game.EventType.GameOverEvent;
+import mindustry.game.EventType.MenuOptionChooseEvent;
+import mindustry.game.EventType.PlayEvent;
+import mindustry.game.EventType.PlayerChatEvent;
+import mindustry.game.EventType.PlayerConnect;
+import mindustry.game.EventType.PlayerJoin;
+import mindustry.game.EventType.PlayerLeave;
+import mindustry.game.EventType.ServerLoadEvent;
+import mindustry.game.EventType.TapEvent;
 
 import org.pf4j.PluginManager;
 
@@ -42,8 +53,27 @@ public class PluginUpdater {
     }
 
     public void init() {
+        Events.on(GameOverEvent.class, this::onEvent);
+        Events.on(PlayEvent.class, this::onEvent);
+        Events.on(PlayerJoin.class, this::onEvent);
+        Events.on(PlayerLeave.class, this::onEvent);
+        Events.on(PlayerChatEvent.class, this::onEvent);
+        Events.on(ServerLoadEvent.class, this::onEvent);
+        Events.on(PlayerConnect.class, this::onEvent);
+        Events.on(BlockBuildEndEvent.class, this::onEvent);
+        Events.on(TapEvent.class, this::onEvent);
+        Events.on(MenuOptionChooseEvent.class, this::onEvent);
+
         for (var plugin : PLUGINS) {
             initPlugin(plugin);
+        }
+    }
+
+    public void onEvent(Object event) {
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
+
+        for (var extension : extensions) {
+            extension.onEvent(event);
         }
     }
 
