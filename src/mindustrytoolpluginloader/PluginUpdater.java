@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import arc.Events;
+import arc.files.Fi;
 import arc.util.CommandHandler;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.game.EventType.GameOverEvent;
@@ -48,11 +49,15 @@ public class PluginUpdater {
                 Files.createDirectories(Paths.get(PLUGIN_DIR));
             }
 
-            for (var file : Files.walk(Paths.get(PLUGIN_DIR)).skip(1).toList()) {
-                if (PLUGINS.stream().anyMatch(p -> p.name.equals(file.getFileName().toString()))) {
+            for (var file : new Fi(PLUGIN_DIR).list()) {
+                if (PLUGINS.stream().anyMatch(p -> p.name.equals(file.name().toString()))) {
                     continue;
                 } else {
-                    Files.delete(file);
+                    if (file.isDirectory()) {
+                        file.deleteDirectory();
+                    } else {
+                        file.delete();
+                    }
                 }
             }
         } catch (IOException e) {
