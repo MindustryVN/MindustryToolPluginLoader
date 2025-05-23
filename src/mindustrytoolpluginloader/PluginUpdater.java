@@ -141,7 +141,7 @@ public class PluginUpdater {
         // Save updated metadata
         meta
                 .putObject(plugin.name())
-                .put("updated_at", lastUpdated).put("url", plugin.url);
+                .put("updated_at", updatedAt).put("url", plugin.url);
 
         Files.writeString(METADATA_PATH, meta.toPrettyString());
 
