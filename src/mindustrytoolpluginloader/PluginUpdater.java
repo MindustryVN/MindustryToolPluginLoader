@@ -47,6 +47,14 @@ public class PluginUpdater {
             if (!Files.exists(Paths.get(PLUGIN_DIR))) {
                 Files.createDirectories(Paths.get(PLUGIN_DIR));
             }
+
+            for (var file : Files.walk(Paths.get(PLUGIN_DIR)).toList()) {
+                if (PLUGINS.stream().anyMatch(p -> p.name.equals(file.getFileName().toString()))) {
+                    continue;
+                } else {
+                    Files.delete(file);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
