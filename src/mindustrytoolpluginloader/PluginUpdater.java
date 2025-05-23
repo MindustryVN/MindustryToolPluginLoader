@@ -21,7 +21,7 @@ public class PluginUpdater {
 
     private static final List<PluginData> PLUGINS = List.of(
             new PluginData("ServerController.jar",
-                    "https://api.github.com/repos/MindustryVN/MindustryToolPlugin/releases/latest"));
+                    "https://api.github.com/repos/MindustryVN/ServerController/releases/latest"));
 
     private static final String PLUGIN_DIR = "config/plugins";
     private static final Path METADATA_PATH = Paths.get("config/plugin-meta.json");
