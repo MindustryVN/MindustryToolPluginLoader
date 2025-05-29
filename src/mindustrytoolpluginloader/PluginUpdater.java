@@ -96,7 +96,18 @@ public class PluginUpdater {
             return;
         }
 
-        String pluginId = pluginManager.loadPlugin(filePath);
+        String pluginId;
+        try {
+            pluginId = pluginManager.loadPlugin(filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                Files.delete(filePath);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            throw new RuntimeException("Failed to load plugin: " + plugin.name);
+        }
         pluginManager.startPlugin(pluginId);
         var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
