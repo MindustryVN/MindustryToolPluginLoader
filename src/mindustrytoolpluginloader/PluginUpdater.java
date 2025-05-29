@@ -93,6 +93,7 @@ public class PluginUpdater {
     public void initPlugin(PluginData plugin) {
         var filePath = Paths.get(PLUGIN_DIR, plugin.name);
         if (!Files.exists(filePath)) {
+            System.out.println("Plugin not found: " + plugin.name);
             return;
         }
 
