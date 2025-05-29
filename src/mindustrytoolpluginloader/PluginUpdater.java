@@ -109,12 +109,16 @@ public class PluginUpdater {
             }
             throw new RuntimeException("Failed to load plugin: " + plugin.name);
         }
-        pluginManager.startPlugin(pluginId);
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+        try {
+            pluginManager.startPlugin(pluginId);
+            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
-        for (var extension : extensions) {
-            System.out.println("Init plugin: " + extension.getClass().getName());
-            extension.init();
+            for (var extension : extensions) {
+                System.out.println("Init plugin: " + extension.getClass().getName());
+                extension.init();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -212,16 +216,7 @@ public class PluginUpdater {
             System.out.println("Unloaded plugin: " + plugin.name);
         }
 
-        // Load new version
-        String pluginId = pluginManager.loadPlugin(path);
-        pluginManager.startPlugin(pluginId);
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
-
-        System.out.println("Loaded plugins: " + loadedPlugins);
-        for (var extension : extensions) {
-            System.out.println("Init plugin: " + plugin.name + " with extension: " + extension.getClass().getName());
-            extension.init();
-        }
+        initPlugin(plugin);
 
         System.out.println("Plugin updated and reloaded: " + plugin.name);
     }
