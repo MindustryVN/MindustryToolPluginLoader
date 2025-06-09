@@ -41,6 +41,9 @@ public class PluginUpdater {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PluginManager pluginManager;
 
+    private CommandHandler clientCommandHandler;
+    private CommandHandler serverCommandHandler;
+
     public PluginUpdater(PluginManager pluginManager) {
         this.pluginManager = pluginManager;
 
@@ -116,6 +119,8 @@ public class PluginUpdater {
             for (var extension : extensions) {
                 System.out.println("Init plugin: " + extension.getClass().getName());
                 extension.init();
+                extension.registerClientCommands(clientCommandHandler);
+                extension.registerServerCommands(serverCommandHandler);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,19 +128,11 @@ public class PluginUpdater {
     }
 
     public void registerClientCommands(CommandHandler handler) {
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
-
-        for (var extension : extensions) {
-            extension.registerClientCommands(handler);
-        }
+        clientCommandHandler = handler;
     }
 
     public void registerServerCommands(CommandHandler handler) {
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
-
-        for (var extension : extensions) {
-            extension.registerServerCommands(handler);
-        }
+        serverCommandHandler = handler;
     }
 
     public void checkAndUpdate() throws Exception {
