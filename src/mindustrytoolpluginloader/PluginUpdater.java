@@ -119,8 +119,12 @@ public class PluginUpdater {
             for (var extension : extensions) {
                 System.out.println("Init plugin: " + extension.getClass().getName());
                 extension.init();
-                extension.registerClientCommands(clientCommandHandler);
-                extension.registerServerCommands(serverCommandHandler);
+                if (clientCommandHandler != null) {
+                    extension.registerClientCommands(clientCommandHandler);
+                }
+                if (serverCommandHandler != null) {
+                    extension.registerServerCommands(serverCommandHandler);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
