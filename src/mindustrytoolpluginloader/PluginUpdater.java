@@ -129,10 +129,22 @@ public class PluginUpdater {
 
     public void registerClientCommands(CommandHandler handler) {
         clientCommandHandler = handler;
+
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
+
+        for (var extension : extensions) {
+            extension.registerClientCommands(clientCommandHandler);
+        }
     }
 
     public void registerServerCommands(CommandHandler handler) {
         serverCommandHandler = handler;
+
+        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
+
+        for (var extension : extensions) {
+            extension.registerServerCommands(serverCommandHandler);
+        }
     }
 
     public void checkAndUpdate() throws Exception {
