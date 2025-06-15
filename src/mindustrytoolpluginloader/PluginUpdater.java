@@ -186,6 +186,25 @@ public class PluginUpdater {
         if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
             return;
         }
+        // Unload current plugin if already loaded
+        List<String> loadedPlugins = pluginManager.getPlugins()
+                .stream()
+                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
+                .map(p -> p.getPluginId())
+                .toList();
+
+        for (String pluginId : loadedPlugins) {
+
+            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+
+            for (var extension : extensions) {
+                extension.unload();
+            }
+
+            pluginManager.stopPlugin(pluginId);
+            pluginManager.unloadPlugin(pluginId);
+            Log.info("Unloaded plugin: " + plugin.name);
+        }
 
         // Download new plugin
         Log.info("Downloading updated plugin: " + plugin.name);
@@ -217,26 +236,6 @@ public class PluginUpdater {
                 .put("updated_at", updatedAt).put("url", plugin.url);
 
         Files.writeString(METADATA_PATH, meta.toPrettyString());
-
-        // Unload current plugin if already loaded
-        List<String> loadedPlugins = pluginManager.getPlugins()
-                .stream()
-                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
-                .map(p -> p.getPluginId())
-                .toList();
-
-        for (String pluginId : loadedPlugins) {
-
-            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
-
-            for (var extension : extensions) {
-                extension.unload();
-            }
-
-            pluginManager.stopPlugin(pluginId);
-            pluginManager.unloadPlugin(pluginId);
-            Log.info("Unloaded plugin: " + plugin.name);
-        }
 
         initPlugin(plugin);
 
