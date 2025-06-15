@@ -226,6 +226,13 @@ public class PluginUpdater {
                 .toList();
 
         for (String pluginId : loadedPlugins) {
+
+            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+
+            for (var extension : extensions) {
+                extension.unload();
+            }
+
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
             Log.info("Unloaded plugin: " + plugin.name);
