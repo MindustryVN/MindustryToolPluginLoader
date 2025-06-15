@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import arc.Events;
 import arc.files.Fi;
 import arc.util.CommandHandler;
+import arc.util.Log;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.game.EventType.GameOverEvent;
 import mindustry.game.EventType.MenuOptionChooseEvent;
@@ -96,7 +97,7 @@ public class PluginUpdater {
     public void initPlugin(PluginData plugin) {
         var filePath = Paths.get(PLUGIN_DIR, plugin.name);
         if (!Files.exists(filePath)) {
-            System.out.println("Plugin not found: " + plugin.name);
+            Log.info("Plugin not found: " + plugin.name);
             return;
         }
 
@@ -117,7 +118,7 @@ public class PluginUpdater {
             var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
 
             for (var extension : extensions) {
-                System.out.println("Init plugin: " + extension.getClass().getName());
+                Log.info("Init plugin: " + extension.getClass().getName());
                 extension.init();
                 if (clientCommandHandler != null) {
                     extension.registerClientCommands(clientCommandHandler);
@@ -187,7 +188,7 @@ public class PluginUpdater {
         }
 
         // Download new plugin
-        System.out.println("Downloading updated plugin: " + plugin.name);
+        Log.info("Downloading updated plugin: " + plugin.name);
         HttpRequest downloadRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
                 .build();
@@ -200,11 +201,11 @@ public class PluginUpdater {
                 HttpResponse.BodyHandlers.ofFile(path));
 
         if (downloadResponse.statusCode() >= 300) {
-            System.out.println("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
+            Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
             return;
         }
 
-        System.out.println("Downloaded to " + downloadResponse.body());
+        Log.info("Downloaded to " + downloadResponse.body());
 
         if (meta == null) {
             meta = objectMapper.createObjectNode();
@@ -218,7 +219,8 @@ public class PluginUpdater {
         Files.writeString(METADATA_PATH, meta.toPrettyString());
 
         // Unload current plugin if already loaded
-        List<String> loadedPlugins = pluginManager.getPlugins().stream()
+        List<String> loadedPlugins = pluginManager.getPlugins()
+                .stream()
                 .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                 .map(p -> p.getPluginId())
                 .toList();
@@ -226,11 +228,11 @@ public class PluginUpdater {
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
-            System.out.println("Unloaded plugin: " + plugin.name);
+            Log.info("Unloaded plugin: " + plugin.name);
         }
 
         initPlugin(plugin);
 
-        System.out.println("Plugin updated and reloaded: " + plugin.name);
+        Log.info("Plugin updated and reloaded: " + plugin.name);
     }
 }
