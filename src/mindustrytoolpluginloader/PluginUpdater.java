@@ -116,7 +116,13 @@ public class PluginUpdater {
         }
         try {
             pluginManager.startPlugin(pluginId);
-            var instance = pluginManager.getPlugin(pluginId);
+            var wrapper = pluginManager.getPlugin(pluginId);
+
+            if (wrapper == null) {
+                throw new RuntimeException("Plugin not found: " + pluginId);
+            }
+
+            var instance = wrapper.getPlugin();
 
             if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
@@ -127,6 +133,8 @@ public class PluginUpdater {
                 if (serverCommandHandler != null) {
                     mindustryToolPlugin.registerServerCommands(serverCommandHandler);
                 }
+            } else {
+                Log.info("Init plugin: " + instance.getClass().getName());
             }
         } catch (Exception e) {
             e.printStackTrace();
