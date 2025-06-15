@@ -134,7 +134,7 @@ public class PluginUpdater {
                     mindustryToolPlugin.registerServerCommands(serverCommandHandler);
                 }
             } else {
-                Log.info("Init plugin: " + instance.getClass().getName());
+                Log.info("Invalid plugin: " + instance.getClass().getName());
             }
         } catch (Exception e) {
             e.printStackTrace();
