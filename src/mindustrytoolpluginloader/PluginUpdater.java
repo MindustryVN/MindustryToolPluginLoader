@@ -87,11 +87,12 @@ public class PluginUpdater {
     }
 
     public void onEvent(Object event) {
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
-
-        for (var extension : extensions) {
-            extension.onEvent(event);
-        }
+        pluginManager.getPlugins()
+                .stream()
+                .map(wrapper -> wrapper.getPlugin())
+                .filter(plugin -> plugin instanceof MindustryToolPlugin)
+                .map(plugin -> (MindustryToolPlugin) plugin)
+                .forEach(plugin -> plugin.onEvent(event));
     }
 
     public void initPlugin(PluginData plugin) {
@@ -115,16 +116,16 @@ public class PluginUpdater {
         }
         try {
             pluginManager.startPlugin(pluginId);
-            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
+            var instance = pluginManager.getPlugin(pluginId);
 
-            for (var extension : extensions) {
-                Log.info("Init plugin: " + extension.getClass().getName());
-                extension.init();
+            if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
+                Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
+                mindustryToolPlugin.init();
                 if (clientCommandHandler != null) {
-                    extension.registerClientCommands(clientCommandHandler);
+                    mindustryToolPlugin.registerClientCommands(clientCommandHandler);
                 }
                 if (serverCommandHandler != null) {
-                    extension.registerServerCommands(serverCommandHandler);
+                    mindustryToolPlugin.registerServerCommands(serverCommandHandler);
                 }
             }
         } catch (Exception e) {
@@ -135,21 +136,23 @@ public class PluginUpdater {
     public void registerClientCommands(CommandHandler handler) {
         clientCommandHandler = handler;
 
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
-
-        for (var extension : extensions) {
-            extension.registerClientCommands(clientCommandHandler);
-        }
+        pluginManager.getPlugins()
+                .stream()
+                .map(wrapper -> wrapper.getPlugin())
+                .filter(plugin -> plugin instanceof MindustryToolPlugin)
+                .map(plugin -> (MindustryToolPlugin) plugin)
+                .forEach(plugin -> plugin.registerClientCommands(handler));
     }
 
     public void registerServerCommands(CommandHandler handler) {
         serverCommandHandler = handler;
 
-        var extensions = pluginManager.getExtensions(MindustryToolPlugin.class);
-
-        for (var extension : extensions) {
-            extension.registerServerCommands(serverCommandHandler);
-        }
+        pluginManager.getPlugins()
+                .stream()
+                .map(wrapper -> wrapper.getPlugin())
+                .filter(plugin -> plugin instanceof MindustryToolPlugin)
+                .map(plugin -> (MindustryToolPlugin) plugin)
+                .forEach(plugin -> plugin.registerServerCommands(handler));
     }
 
     public void checkAndUpdate() throws Exception {
@@ -194,13 +197,6 @@ public class PluginUpdater {
                 .toList();
 
         for (String pluginId : loadedPlugins) {
-
-            var extensions = pluginManager.getExtensions(MindustryToolPlugin.class, pluginId);
-
-            for (var extension : extensions) {
-                extension.unload();
-            }
-
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
             Log.info("Unloaded plugin: " + plugin.name);
