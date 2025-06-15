@@ -207,6 +207,7 @@ public class PluginUpdater {
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
+            pluginManager.deletePlugin(pluginId);
             Log.info("Unloaded plugin: " + plugin.name);
         }
 
