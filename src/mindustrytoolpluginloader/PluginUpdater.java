@@ -7,6 +7,7 @@ import arc.Events;
 import arc.files.Fi;
 import arc.util.CommandHandler;
 import arc.util.Log;
+import lombok.Data;
 import mindustry.game.EventType.BlockBuildEndEvent;
 import mindustry.game.EventType.GameOverEvent;
 import mindustry.game.EventType.MenuOptionChooseEvent;
@@ -29,7 +30,10 @@ import java.util.Objects;
 
 public class PluginUpdater {
 
-    public static record PluginData(String name, String url) {
+    @Data
+    public static class PluginData {
+        final String name;
+        final String url;
     }
 
     private static final List<PluginData> PLUGINS = List.of(
@@ -236,7 +240,7 @@ public class PluginUpdater {
 
         // Save updated metadata
         meta
-                .putObject(plugin.name())
+                .putObject(plugin.getName())
                 .put("updated_at", updatedAt).put("url", plugin.url);
 
         Files.writeString(METADATA_PATH, meta.toPrettyString());
