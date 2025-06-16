@@ -2,12 +2,18 @@ apply plugin: "java"
 
 version '1.0'
 
-sourceCompatibility = JavaVersion.VERSION_16
+sourceCompatibility = JavaVersion.VERSION_21
 
 sourceSets.main.java.srcDirs = ["src"]
 
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
+
+
+tasks.withType(JavaCompile) {
+    options.release = 8
+}
+
 
 repositories{
     mavenCentral()
