@@ -154,14 +154,15 @@ public class MindustryToolPluginLoader extends Plugin {
 
     public void initPlugin(PluginData plugin) {
         var filePath = Paths.get(PLUGIN_DIR, plugin.name);
+
         if (!Files.exists(filePath)) {
             Log.info("Plugin not found: " + plugin.name);
             return;
         }
 
         String pluginId;
+        Log.info("Attempt to load: " + plugin.name);
         try {
-            Log.info("Attempt to load: " + plugin.name);
             pluginId = pluginManager.loadPlugin(filePath);
             Log.info("Plugin loaded: " + plugin.name);
         } catch (Exception e) {
