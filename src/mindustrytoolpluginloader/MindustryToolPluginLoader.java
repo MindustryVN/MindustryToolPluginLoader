@@ -84,6 +84,14 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
+        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
+            try {
+                checkAndUpdate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 0, 5, TimeUnit.MINUTES);
+
         for (var plugin : PLUGINS) {
             try {
                 initPlugin(plugin);
@@ -91,14 +99,6 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }
-
-        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
-            try {
-                checkAndUpdate();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 5, 5, TimeUnit.MINUTES);
 
         Events.on(GameOverEvent.class, this::onEvent);
         Events.on(PlayEvent.class, this::onEvent);
