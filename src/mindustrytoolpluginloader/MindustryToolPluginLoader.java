@@ -156,7 +156,9 @@ public class MindustryToolPluginLoader extends Plugin {
 
         String pluginId;
         try {
+            Log.info("Attempt to load: " + plugin.name);
             pluginId = pluginManager.loadPlugin(filePath);
+            Log.info("Plugin loaded: " + plugin.name);
         } catch (Exception e) {
             e.printStackTrace();
             try {
@@ -167,7 +169,9 @@ public class MindustryToolPluginLoader extends Plugin {
             throw new RuntimeException("Failed to load plugin: " + plugin.name);
         }
         try {
+            Log.info("Attempt to start: " + plugin.name);
             pluginManager.startPlugin(pluginId);
+            Log.info("Plugin started: " + plugin.name);
             var wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
