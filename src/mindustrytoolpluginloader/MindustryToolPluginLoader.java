@@ -90,7 +90,7 @@ public class MindustryToolPluginLoader extends Plugin {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 60 * 5, TimeUnit.MINUTES);
+        }, 5, 5, TimeUnit.MINUTES);
 
         System.out.println("MindustryToolPluginLoader initialized");
 
@@ -104,6 +104,10 @@ public class MindustryToolPluginLoader extends Plugin {
         Events.on(BlockBuildEndEvent.class, this::onEvent);
         Events.on(TapEvent.class, this::onEvent);
         Events.on(MenuOptionChooseEvent.class, this::onEvent);
+
+        for (var plugin : PLUGINS) {
+            initPlugin(plugin);
+        }
     }
 
     @Override
@@ -216,20 +220,15 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         var path = Paths.get(PLUGIN_DIR, plugin.name);
-
+        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
+            return;
+        }
+        // Unload current plugin if already loaded
         List<String> loadedPlugins = pluginManager.getPlugins()
                 .stream()
                 .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                 .map(p -> p.getPluginId())
                 .toList();
-
-        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
-            if (loadedPlugins == null || loadedPlugins.isEmpty()) {
-                initPlugin(plugin);
-            }
-
-            return;
-        }
 
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
