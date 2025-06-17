@@ -84,6 +84,14 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
+        for (var plugin : PLUGINS) {
+            try {
+                initPlugin(plugin);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
             try {
                 checkAndUpdate();
@@ -103,13 +111,6 @@ public class MindustryToolPluginLoader extends Plugin {
         Events.on(TapEvent.class, this::onEvent);
         Events.on(MenuOptionChooseEvent.class, this::onEvent);
 
-        for (var plugin : PLUGINS) {
-            try {
-                initPlugin(plugin);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
         System.out.println("MindustryToolPluginLoader initialized");
     }
 
