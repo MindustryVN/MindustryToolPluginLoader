@@ -92,8 +92,6 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }, 5, 5, TimeUnit.MINUTES);
 
-        System.out.println("MindustryToolPluginLoader initialized");
-
         Events.on(GameOverEvent.class, this::onEvent);
         Events.on(PlayEvent.class, this::onEvent);
         Events.on(PlayerJoin.class, this::onEvent);
@@ -106,8 +104,13 @@ public class MindustryToolPluginLoader extends Plugin {
         Events.on(MenuOptionChooseEvent.class, this::onEvent);
 
         for (var plugin : PLUGINS) {
-            initPlugin(plugin);
+            try {
+                initPlugin(plugin);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+        System.out.println("MindustryToolPluginLoader initialized");
     }
 
     @Override
