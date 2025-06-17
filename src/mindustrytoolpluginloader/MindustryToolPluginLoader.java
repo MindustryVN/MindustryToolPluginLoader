@@ -104,10 +104,6 @@ public class MindustryToolPluginLoader extends Plugin {
         Events.on(BlockBuildEndEvent.class, this::onEvent);
         Events.on(TapEvent.class, this::onEvent);
         Events.on(MenuOptionChooseEvent.class, this::onEvent);
-
-        for (var plugin : PLUGINS) {
-            initPlugin(plugin);
-        }
     }
 
     @Override
