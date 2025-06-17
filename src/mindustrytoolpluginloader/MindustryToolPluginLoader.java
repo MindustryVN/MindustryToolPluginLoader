@@ -139,12 +139,17 @@ public class MindustryToolPluginLoader extends Plugin {
     }
 
     public void onEvent(Object event) {
-        pluginManager.getPlugins()
-                .stream()
-                .map(wrapper -> wrapper.getPlugin())
-                .filter(plugin -> plugin instanceof MindustryToolPlugin)
-                .map(plugin -> (MindustryToolPlugin) plugin)
-                .forEach(plugin -> plugin.onEvent(event));
+        try {
+            pluginManager.getPlugins()
+                    .stream()
+                    .map(wrapper -> wrapper.getPlugin())
+                    .filter(plugin -> plugin instanceof MindustryToolPlugin)
+                    .map(plugin -> (MindustryToolPlugin) plugin)
+                    .forEach(plugin -> plugin.onEvent(event));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void initPlugin(PluginData plugin) {
