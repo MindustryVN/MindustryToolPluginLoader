@@ -265,6 +265,11 @@ public class MindustryToolPluginLoader extends Plugin {
 
         if (downloadResponse.statusCode() >= 300) {
             Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
+
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
+
             return;
         }
 
