@@ -18,17 +18,7 @@ import arc.Events;
 import arc.files.Fi;
 import arc.util.Log;
 import lombok.Data;
-import mindustry.game.EventType.BlockBuildEndEvent;
-import mindustry.game.EventType.GameOverEvent;
-import mindustry.game.EventType.MenuOptionChooseEvent;
-import mindustry.game.EventType.PlayEvent;
-import mindustry.game.EventType.PlayerChatEvent;
-import mindustry.game.EventType.PlayerConnect;
-import mindustry.game.EventType.PlayerJoin;
-import mindustry.game.EventType.PlayerLeave;
-import mindustry.game.EventType.ServerLoadEvent;
-import mindustry.game.EventType.TapEvent;
-
+import mindustry.game.EventType;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.*;
@@ -100,16 +90,21 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }
 
-        Events.on(GameOverEvent.class, this::onEvent);
-        Events.on(PlayEvent.class, this::onEvent);
-        Events.on(PlayerJoin.class, this::onEvent);
-        Events.on(PlayerLeave.class, this::onEvent);
-        Events.on(PlayerChatEvent.class, this::onEvent);
-        Events.on(ServerLoadEvent.class, this::onEvent);
-        Events.on(PlayerConnect.class, this::onEvent);
-        Events.on(BlockBuildEndEvent.class, this::onEvent);
-        Events.on(TapEvent.class, this::onEvent);
-        Events.on(MenuOptionChooseEvent.class, this::onEvent);
+        for (var clazz : EventType.class.getDeclaredClasses()) {
+            try {
+                Events.on(clazz, this::onEvent);
+            } catch (Exception e) {
+                Log.err("Failed to register event: " + clazz.getName(), e);
+            }
+        }
+
+        for (var trigger : EventType.Trigger.values()) {
+            try {
+                Events.run(trigger, () -> onEvent(trigger));
+            } catch (Exception e) {
+                Log.err("Failed to register trigger: " + trigger.name(), e);
+            }
+        }
 
         System.out.println("MindustryToolPluginLoader initialized");
     }
