@@ -80,11 +80,11 @@ public class MindustryToolPluginLoader extends Plugin {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 5, 5, TimeUnit.MINUTES);
 
         for (var plugin : PLUGINS) {
             try {
-                initPlugin(plugin);
+                checkAndUpdate(plugin);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -227,18 +227,23 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }
-
         var path = Paths.get(PLUGIN_DIR, plugin.name);
-        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
-            return;
-        }
-        // Unload current plugin if already loaded
         List<String> loadedPlugins = pluginManager.getPlugins()
                 .stream()
                 .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                 .map(p -> p.getPluginId())
                 .toList();
 
+        var isLoaded = loadedPlugins.size() > 0;
+
+        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
+            if (!isLoaded) {
+                initPlugin(plugin);
+            }
+            return;
+        }
+
+        // Unload current plugin if already loaded
         for (String pluginId : loadedPlugins) {
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
