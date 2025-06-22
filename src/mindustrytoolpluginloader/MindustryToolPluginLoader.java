@@ -29,7 +29,7 @@ import java.util.Objects;
 
 public class MindustryToolPluginLoader extends Plugin {
 
-    public static final PluginManager pluginManager = new DefaultPluginManager();
+    public final PluginManager pluginManager;
     public static final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
 
     public static final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
@@ -54,46 +54,38 @@ public class MindustryToolPluginLoader extends Plugin {
     private static CommandHandler clientCommandHandler;
     private static CommandHandler serverCommandHandler;
 
-    @Override
-    public void init() {
-        pluginManager.addPluginStateListener(new LoggingPluginStateListener());
-
+    public MindustryToolPluginLoader() {
         try {
             if (!Files.exists(Paths.get(PLUGIN_DIR))) {
                 Files.createDirectories(Paths.get(PLUGIN_DIR));
             }
 
-            for (var file : new Fi(PLUGIN_DIR).list()) {
-                if (PLUGINS.stream().anyMatch(p -> p.name.equals(file.name().toString()))) {
-                    continue;
-                } else {
-                    if (file.isDirectory()) {
-                        file.deleteDirectory();
-                    } else {
-                        file.delete();
-                    }
-                }
-            }
+            new Fi(PLUGIN_DIR).emptyDirectory();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        for (var plugin : PLUGINS) {
-            try {
-                var path = Paths.get(PLUGIN_DIR, plugin.name);
-                if (Files.exists(path)) {
-                    Files.delete(path);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        pluginManager = new DefaultPluginManager();
+    }
+
+    @Override
+    public void init() {
+        pluginManager.addPluginStateListener(new LoggingPluginStateListener());
 
         for (var clazz : EventType.class.getDeclaredClasses()) {
             try {
                 Events.on(clazz, this::onEvent);
             } catch (Exception e) {
                 Log.err("Failed to register event: " + clazz.getName(), e);
+            }
+        }
+
+        for (var trigger : EventType.Trigger.values()) {
+            try {
+                Events.run(trigger, () -> onEvent(trigger));
+            } catch (Exception e) {
+                Log.err("Failed to register trigger: " + trigger.name(), e);
             }
         }
 
@@ -104,14 +96,6 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }, 0, 5, TimeUnit.MINUTES);
-
-        for (var trigger : EventType.Trigger.values()) {
-            try {
-                Events.run(trigger, () -> onEvent(trigger));
-            } catch (Exception e) {
-                Log.err("Failed to register trigger: " + trigger.name(), e);
-            }
-        }
 
         System.out.println("MindustryToolPluginLoader initialized");
 
