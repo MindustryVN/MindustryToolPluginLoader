@@ -218,8 +218,7 @@ public class MindustryToolPluginLoader extends Plugin {
             Files.delete(path);
         }
 
-        HttpResponse<Path> downloadResponse = client.send(downloadRequest,
-                HttpResponse.BodyHandlers.ofFile(path));
+        HttpResponse<Path> downloadResponse = client.send(downloadRequest, HttpResponse.BodyHandlers.ofFile(path));
 
         if (downloadResponse.statusCode() >= 300) {
             Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
