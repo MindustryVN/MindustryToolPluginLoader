@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.LoggingPluginStateListener;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginStateEvent;
+import org.pf4j.PluginStateListener;
 
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
@@ -71,7 +73,14 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void init() {
-        pluginManager.addPluginStateListener(new LoggingPluginStateListener());
+        pluginManager.addPluginStateListener(new PluginStateListener() {
+
+            @Override
+            public void pluginStateChanged(PluginStateEvent event) {
+                Log.info(
+                        event.getPlugin().getPluginId() + ": " + event.getOldState() + " -> " + event.getPluginState());
+            }
+        });
 
         for (var clazz : EventType.class.getDeclaredClasses()) {
             try {
@@ -98,15 +107,6 @@ public class MindustryToolPluginLoader extends Plugin {
         }, 0, 5, TimeUnit.MINUTES);
 
         System.out.println("MindustryToolPluginLoader initialized");
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-
-            @Override
-            public void run() {
-                pluginManager.stopPlugins();
-            }
-
-        });
     }
 
     @Override
