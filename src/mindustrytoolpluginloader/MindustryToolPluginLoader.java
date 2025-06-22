@@ -188,8 +188,7 @@ public class MindustryToolPluginLoader extends Plugin {
         var loaded = pluginManager.getPlugin(plugin.getId());
 
         if (loaded != null) {
-            var pluginId = loaded.getPluginId();
-            pluginManager.deletePlugin(pluginId);
+            loaded.getPlugin().delete();
 
             Log.info("Unloaded plugin: " + plugin.name);
         }
@@ -231,7 +230,6 @@ public class MindustryToolPluginLoader extends Plugin {
 
         try {
             var pluginId = pluginManager.loadPlugin(path);
-            pluginManager.startPlugin(pluginId);
             var wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
@@ -239,6 +237,7 @@ public class MindustryToolPluginLoader extends Plugin {
             }
 
             var instance = wrapper.getPlugin();
+            instance.start();
 
             if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
