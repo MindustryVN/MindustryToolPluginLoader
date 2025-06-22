@@ -151,6 +151,8 @@ public class MindustryToolPluginLoader extends Plugin {
         for (var plugin : PLUGINS) {
             checkAndUpdate(plugin);
         }
+
+        Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
     }
 
     public synchronized void checkAndUpdate(PluginData plugin) throws Exception {
