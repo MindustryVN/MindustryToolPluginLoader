@@ -151,59 +151,54 @@ public class MindustryToolPluginLoader extends Plugin {
         }
     }
 
-    public void initPlugin(PluginData plugin) {
-        var lock = PLUGIN_LOCKS.computeIfAbsent(plugin.name, _ignore -> new Object());
+    public synchronized void initPlugin(PluginData plugin) {
+        var filePath = Paths.get(PLUGIN_DIR, plugin.name);
 
-        synchronized (lock) {
+        if (!Files.exists(filePath)) {
+            Log.info("Plugin not found: " + plugin.name);
+            return;
+        }
 
-            var filePath = Paths.get(PLUGIN_DIR, plugin.name);
-
-            if (!Files.exists(filePath)) {
-                Log.info("Plugin not found: " + plugin.name);
-                return;
-            }
-
-            String pluginId;
-            Log.info("Attempt to load: " + plugin.name);
+        String pluginId;
+        Log.info("Attempt to load: " + plugin.name);
+        try {
+            pluginId = pluginManager.loadPlugin(filePath);
+            Log.info("Plugin loaded: " + plugin.name);
+        } catch (Exception e) {
+            e.printStackTrace();
             try {
-                pluginId = pluginManager.loadPlugin(filePath);
-                Log.info("Plugin loaded: " + plugin.name);
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    Files.delete(filePath);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                throw new RuntimeException("Failed to load plugin: " + plugin.name);
+                Files.delete(filePath);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
-            try {
-                Log.info("Attempt to start: " + plugin.name);
-                pluginManager.startPlugin(pluginId);
-                Log.info("Plugin started: " + plugin.name);
-                var wrapper = pluginManager.getPlugin(pluginId);
+            throw new RuntimeException("Failed to load plugin: " + plugin.name);
+        }
+        try {
+            Log.info("Attempt to start: " + plugin.name);
+            pluginManager.startPlugin(pluginId);
+            Log.info("Plugin started: " + plugin.name);
+            var wrapper = pluginManager.getPlugin(pluginId);
 
-                if (wrapper == null) {
-                    throw new RuntimeException("Plugin not found: " + pluginId);
-                }
-
-                var instance = wrapper.getPlugin();
-
-                if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
-                    Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
-                    mindustryToolPlugin.init();
-                    if (clientCommandHandler != null) {
-                        mindustryToolPlugin.registerClientCommands(clientCommandHandler);
-                    }
-                    if (serverCommandHandler != null) {
-                        mindustryToolPlugin.registerServerCommands(serverCommandHandler);
-                    }
-                } else {
-                    Log.info("Invalid plugin: " + instance.getClass().getName());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (wrapper == null) {
+                throw new RuntimeException("Plugin not found: " + pluginId);
             }
+
+            var instance = wrapper.getPlugin();
+
+            if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
+                Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
+                mindustryToolPlugin.init();
+                if (clientCommandHandler != null) {
+                    mindustryToolPlugin.registerClientCommands(clientCommandHandler);
+                }
+                if (serverCommandHandler != null) {
+                    mindustryToolPlugin.registerServerCommands(serverCommandHandler);
+                }
+            } else {
+                Log.info("Invalid plugin: " + instance.getClass().getName());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
