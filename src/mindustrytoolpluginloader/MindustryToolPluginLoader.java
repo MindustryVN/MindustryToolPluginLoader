@@ -36,12 +36,13 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Data
     public static class PluginData {
+        final String id;
         final String name;
         final String url;
     }
 
     private static final List<PluginData> PLUGINS = List.of(
-            new PluginData("ServerController.jar",
+            new PluginData("mindustry-tool", "ServerController.jar",
                     "https://api.github.com/repos/MindustryVN/ServerController/releases/latest"));
 
     private static final String PLUGIN_DIR = "config/plugins";
@@ -159,68 +160,6 @@ public class MindustryToolPluginLoader extends Plugin {
         }
     }
 
-    public synchronized void initPlugin(PluginData plugin) {
-        var path = Paths.get(PLUGIN_DIR, plugin.name);
-
-        if (!Files.exists(path)) {
-            Log.info("Plugin not found: " + plugin.name);
-            return;
-        }
-
-        List<String> loadedPlugins = pluginManager.getPlugins()
-                .stream()
-                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
-                .map(p -> p.getPluginId())
-                .toList();
-
-        if (loadedPlugins.size() > 0) {
-            Log.info("Plugin already loaded: " + plugin.name);
-            return;
-        }
-
-        String pluginId;
-        Log.info("Attempt to load: " + plugin.name);
-        try {
-            pluginId = pluginManager.loadPlugin(path);
-            Log.info("Plugin loaded: " + plugin.name);
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                Files.delete(path);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-            throw new RuntimeException("Failed to load plugin: " + plugin.name);
-        }
-        try {
-            Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
-            pluginManager.startPlugin(pluginId);
-            Log.info("Plugin started: " + plugin.name + ":" + pluginId);
-            var wrapper = pluginManager.getPlugin(pluginId);
-
-            if (wrapper == null) {
-                throw new RuntimeException("Plugin not found: " + pluginId);
-            }
-
-            var instance = wrapper.getPlugin();
-
-            if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
-                Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
-                mindustryToolPlugin.init();
-                if (clientCommandHandler != null) {
-                    mindustryToolPlugin.registerClientCommands(clientCommandHandler);
-                }
-                if (serverCommandHandler != null) {
-                    mindustryToolPlugin.registerServerCommands(serverCommandHandler);
-                }
-            } else {
-                Log.info("Invalid plugin: " + instance.getClass().getName());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void checkAndUpdate() throws Exception {
         for (var plugin : PLUGINS) {
             checkAndUpdate(plugin);
@@ -251,20 +190,18 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }
-        var path = Paths.get(PLUGIN_DIR, plugin.name);
 
-        List<String> loadedPlugins = pluginManager.getPlugins()
-                .stream()
-                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
-                .map(p -> p.getPluginId())
-                .toList();
+        var path = Paths.get(PLUGIN_DIR, plugin.name);
 
         if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
             return;
         }
 
-        // Unload current plugin if already loaded
-        for (String pluginId : loadedPlugins) {
+        var loaded = pluginManager.getPlugin(plugin.getId());
+
+        if (loaded != null) {
+            var pluginId = loaded.getPluginId();
+
             pluginManager.stopPlugin(pluginId);
             pluginManager.unloadPlugin(pluginId);
 
@@ -307,8 +244,51 @@ public class MindustryToolPluginLoader extends Plugin {
 
         Files.writeString(METADATA_PATH, meta.toPrettyString());
 
-        initPlugin(plugin);
+        Log.info("Attempt to load: " + plugin.name);
 
-        Log.info("Plugin updated and reloaded: " + plugin.name);
+        try {
+            var pluginId = pluginManager.loadPlugin(path);
+
+            Log.info("Plugin loaded: " + plugin.name);
+
+            try {
+                Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
+                pluginManager.startPlugin(pluginId);
+                Log.info("Plugin started: " + plugin.name + ":" + pluginId);
+                var wrapper = pluginManager.getPlugin(pluginId);
+
+                if (wrapper == null) {
+                    throw new RuntimeException("Plugin not found: " + pluginId);
+                }
+
+                var instance = wrapper.getPlugin();
+
+                if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
+                    Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
+                    mindustryToolPlugin.init();
+                    if (clientCommandHandler != null) {
+                        mindustryToolPlugin.registerClientCommands(clientCommandHandler);
+                    }
+                    if (serverCommandHandler != null) {
+                        mindustryToolPlugin.registerServerCommands(serverCommandHandler);
+                    }
+                } else {
+                    Log.info("Invalid plugin: " + instance.getClass().getName());
+                }
+
+                Log.info("Plugin updated and reloaded: " + plugin.name);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                Files.delete(path);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            throw new RuntimeException("Failed to load plugin: " + plugin.name);
+        }
     }
 }
