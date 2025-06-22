@@ -25,7 +25,6 @@ import java.net.http.*;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Objects;
-import java.util.HashMap;
 
 public class MindustryToolPluginLoader extends Plugin {
 
@@ -34,8 +33,6 @@ public class MindustryToolPluginLoader extends Plugin {
 
     public final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
-
-    private final HashMap<String, Object> PLUGIN_LOCKS = new HashMap<>();
 
     @Data
     public static class PluginData {
@@ -113,6 +110,15 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         System.out.println("MindustryToolPluginLoader initialized");
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                pluginManager.stopPlugins();
+            }
+
+        });
     }
 
     @Override
@@ -154,14 +160,12 @@ public class MindustryToolPluginLoader extends Plugin {
     }
 
     public synchronized void initPlugin(PluginData plugin) {
-        var filePath = Paths.get(PLUGIN_DIR, plugin.name);
+        var path = Paths.get(PLUGIN_DIR, plugin.name);
 
-        if (!Files.exists(filePath)) {
+        if (!Files.exists(path)) {
             Log.info("Plugin not found: " + plugin.name);
             return;
         }
-
-        var path = Paths.get(PLUGIN_DIR, plugin.name);
 
         List<String> loadedPlugins = pluginManager.getPlugins()
                 .stream()
@@ -177,12 +181,12 @@ public class MindustryToolPluginLoader extends Plugin {
         String pluginId;
         Log.info("Attempt to load: " + plugin.name);
         try {
-            pluginId = pluginManager.loadPlugin(filePath);
+            pluginId = pluginManager.loadPlugin(path);
             Log.info("Plugin loaded: " + plugin.name);
         } catch (Exception e) {
             e.printStackTrace();
             try {
-                Files.delete(filePath);
+                Files.delete(path);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -223,93 +227,88 @@ public class MindustryToolPluginLoader extends Plugin {
         }
     }
 
-    public void checkAndUpdate(PluginData plugin) throws Exception {
-        var lock = PLUGIN_LOCKS.computeIfAbsent(plugin.name, _ignore -> new Object());
+    public synchronized void checkAndUpdate(PluginData plugin) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
+                        + plugin.url))
+                .build();
 
-        synchronized (lock) {
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        String updatedAt = response.body();
 
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
-                            + plugin.url))
-                    .build();
+        String lastUpdated = null;
+        ObjectNode meta = null;
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            String updatedAt = response.body();
+        if (Files.exists(METADATA_PATH)) {
+            try {
+                meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
 
-            String lastUpdated = null;
-            ObjectNode meta = null;
-
-            if (Files.exists(METADATA_PATH)) {
-                try {
-                    meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
-
-                    if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
-                        lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
+                    lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            var path = Paths.get(PLUGIN_DIR, plugin.name);
+        }
+        var path = Paths.get(PLUGIN_DIR, plugin.name);
 
-            List<String> loadedPlugins = pluginManager.getPlugins()
-                    .stream()
-                    .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
-                    .map(p -> p.getPluginId())
-                    .toList();
+        List<String> loadedPlugins = pluginManager.getPlugins()
+                .stream()
+                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
+                .map(p -> p.getPluginId())
+                .toList();
 
-            if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
-                return;
-            }
+        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
+            return;
+        }
 
-            // Unload current plugin if already loaded
-            for (String pluginId : loadedPlugins) {
-                pluginManager.stopPlugin(pluginId);
-                pluginManager.unloadPlugin(pluginId);
+        // Unload current plugin if already loaded
+        for (String pluginId : loadedPlugins) {
+            pluginManager.stopPlugin(pluginId);
+            pluginManager.unloadPlugin(pluginId);
 
-                Log.info("Unloaded plugin: " + plugin.name);
-            }
+            Log.info("Unloaded plugin: " + plugin.name);
+        }
 
-            // Download new plugin
-            Log.info("Downloading updated plugin: " + plugin.name);
-            HttpRequest downloadRequest = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
-                    .build();
+        // Download new plugin
+        Log.info("Downloading updated plugin: " + plugin.name);
+        HttpRequest downloadRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
+                .build();
+
+        if (Files.exists(path)) {
+            Files.delete(path);
+        }
+
+        HttpResponse<Path> downloadResponse = client.send(downloadRequest,
+                HttpResponse.BodyHandlers.ofFile(path));
+
+        if (downloadResponse.statusCode() >= 300) {
+            Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
 
             if (Files.exists(path)) {
                 Files.delete(path);
             }
 
-            HttpResponse<Path> downloadResponse = client.send(downloadRequest,
-                    HttpResponse.BodyHandlers.ofFile(path));
-
-            if (downloadResponse.statusCode() >= 300) {
-                Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
-
-                if (Files.exists(path)) {
-                    Files.delete(path);
-                }
-
-                return;
-            }
-
-            Log.info("Downloaded to " + downloadResponse.body());
-
-            if (meta == null) {
-                meta = objectMapper.createObjectNode();
-            }
-
-            // Save updated metadata
-            meta
-                    .putObject(plugin.getName())
-                    .put("updated_at", updatedAt).put("url", plugin.url);
-
-            Files.writeString(METADATA_PATH, meta.toPrettyString());
-
-            initPlugin(plugin);
-
-            Log.info("Plugin updated and reloaded: " + plugin.name);
+            return;
         }
+
+        Log.info("Downloaded to " + downloadResponse.body());
+
+        if (meta == null) {
+            meta = objectMapper.createObjectNode();
+        }
+
+        // Save updated metadata
+        meta
+                .putObject(plugin.getName())
+                .put("updated_at", updatedAt).put("url", plugin.url);
+
+        Files.writeString(METADATA_PATH, meta.toPrettyString());
+
+        initPlugin(plugin);
+
+        Log.info("Plugin updated and reloaded: " + plugin.name);
     }
 }
