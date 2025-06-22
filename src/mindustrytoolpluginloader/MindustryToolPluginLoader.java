@@ -237,35 +237,33 @@ public class MindustryToolPluginLoader extends Plugin {
 
             Log.info("Plugin loaded: " + plugin.name);
 
-            try {
-                Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
-                pluginManager.startPlugin(pluginId);
-                Log.info("Plugin started: " + plugin.name + ":" + pluginId);
-                var wrapper = pluginManager.getPlugin(pluginId);
+            Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
+            var state = pluginManager.startPlugin(pluginId);
+            Log.info("Plugin: " + plugin.name + ":" + pluginId + " " + state.name());
+            var wrapper = pluginManager.getPlugin(pluginId);
 
-                if (wrapper == null) {
-                    throw new RuntimeException("Plugin not found: " + pluginId);
-                }
-
-                var instance = wrapper.getPlugin();
-
-                if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
-                    Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
-                    mindustryToolPlugin.init();
-                    if (clientCommandHandler != null) {
-                        mindustryToolPlugin.registerClientCommands(clientCommandHandler);
-                    }
-                    if (serverCommandHandler != null) {
-                        mindustryToolPlugin.registerServerCommands(serverCommandHandler);
-                    }
-                } else {
-                    Log.info("Invalid plugin: " + instance.getClass().getName());
-                }
-
-                Log.info("Plugin updated and reloaded: " + plugin.name);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (wrapper == null) {
+                throw new RuntimeException("Plugin not found: " + pluginId);
             }
+
+            var instance = wrapper.getPlugin();
+
+            if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
+                Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
+                mindustryToolPlugin.init();
+
+                if (clientCommandHandler != null) {
+                    mindustryToolPlugin.registerClientCommands(clientCommandHandler);
+                }
+
+                if (serverCommandHandler != null) {
+                    mindustryToolPlugin.registerServerCommands(serverCommandHandler);
+                }
+            } else {
+                Log.info("Invalid plugin: " + instance.getClass().getName());
+            }
+
+            Log.info("Plugin updated and reloaded: " + plugin.name);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -274,7 +272,7 @@ public class MindustryToolPluginLoader extends Plugin {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            throw new RuntimeException("Failed to load plugin: " + plugin.name);
+            throw new RuntimeException("Failed to load plugin: " + plugin.name, e);
         }
     }
 }
