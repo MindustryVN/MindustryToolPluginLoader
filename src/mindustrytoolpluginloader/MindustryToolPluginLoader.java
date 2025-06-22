@@ -79,7 +79,10 @@ public class MindustryToolPluginLoader extends Plugin {
 
         for (var plugin : PLUGINS) {
             try {
-                initPlugin(plugin);
+                var path = Paths.get(PLUGIN_DIR, plugin.name);
+                if (Files.exists(path)) {
+                    Files.delete(path);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -99,7 +102,7 @@ public class MindustryToolPluginLoader extends Plugin {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 5, 5, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
 
         for (var trigger : EventType.Trigger.values()) {
             try {
@@ -240,6 +243,7 @@ public class MindustryToolPluginLoader extends Plugin {
             if (Files.exists(METADATA_PATH)) {
                 try {
                     meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
+
                     if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
                         lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
                     }
