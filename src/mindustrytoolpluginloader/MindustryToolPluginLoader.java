@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginState;
 import org.pf4j.PluginStateEvent;
 import org.pf4j.PluginStateListener;
 
@@ -134,7 +135,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
     public void onEvent(Object event) {
         try {
-            pluginManager.getPlugins()
+            pluginManager.getPlugins(PluginState.STARTED)
                     .stream()
                     .map(wrapper -> wrapper.getPlugin())
                     .filter(plugin -> plugin instanceof MindustryToolPlugin)
