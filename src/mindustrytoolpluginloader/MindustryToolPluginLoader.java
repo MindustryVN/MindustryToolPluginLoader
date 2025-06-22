@@ -154,7 +154,7 @@ public class MindustryToolPluginLoader extends Plugin {
         Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
     }
 
-    public synchronized void checkAndUpdate(PluginData plugin) throws Exception {
+    public void checkAndUpdate(PluginData plugin) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
@@ -237,8 +237,8 @@ public class MindustryToolPluginLoader extends Plugin {
                 throw new RuntimeException("Plugin not found: " + pluginId);
             }
 
+            pluginManager.startPlugin(pluginId);
             var instance = wrapper.getPlugin();
-            instance.start();
 
             if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
