@@ -6,6 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.pf4j.DefaultPluginManager;
+import org.pf4j.LoggingPluginStateListener;
 import org.pf4j.PluginManager;
 
 import arc.util.CommandHandler;
@@ -28,10 +29,10 @@ import java.util.Objects;
 
 public class MindustryToolPluginLoader extends Plugin {
 
-    public final PluginManager pluginManager = new DefaultPluginManager();
-    public final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
+    public static final PluginManager pluginManager = new DefaultPluginManager();
+    public static final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
 
-    public final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
+    public static final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
 
     @Data
@@ -48,13 +49,15 @@ public class MindustryToolPluginLoader extends Plugin {
     private static final String PLUGIN_DIR = "config/plugins";
     private static final Path METADATA_PATH = Paths.get("config/plugin-meta.json");
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    private CommandHandler clientCommandHandler;
-    private CommandHandler serverCommandHandler;
+    private static CommandHandler clientCommandHandler;
+    private static CommandHandler serverCommandHandler;
 
     @Override
     public void init() {
+        pluginManager.addPluginStateListener(new LoggingPluginStateListener());
+
         try {
             if (!Files.exists(Paths.get(PLUGIN_DIR))) {
                 Files.createDirectories(Paths.get(PLUGIN_DIR));
