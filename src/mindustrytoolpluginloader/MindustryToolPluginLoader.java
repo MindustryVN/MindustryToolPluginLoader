@@ -72,6 +72,8 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void init() {
+        checkAndUpdate();
+
         for (var clazz : EventType.class.getDeclaredClasses()) {
             try {
                 Events.on(clazz, this::onEvent);
@@ -88,9 +90,9 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }
 
-        checkAndUpdate();
-
         BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> checkAndUpdate(), 5, 5, TimeUnit.MINUTES);
+
+        Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
 
         System.out.println("MindustryToolPluginLoader initialized");
     }
@@ -124,8 +126,6 @@ public class MindustryToolPluginLoader extends Plugin {
                 e.printStackTrace();
             }
         }
-
-        Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
     }
 
     public void checkAndUpdate(PluginData plugin) throws Exception {
