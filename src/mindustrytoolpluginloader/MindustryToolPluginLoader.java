@@ -231,16 +231,9 @@ public class MindustryToolPluginLoader extends Plugin {
 
         Files.writeString(METADATA_PATH, meta.toPrettyString());
 
-        Log.info("Attempt to load: " + plugin.name);
-
         try {
             var pluginId = pluginManager.loadPlugin(path);
-
-            Log.info("Plugin loaded: " + plugin.name);
-
-            Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
-            var state = pluginManager.startPlugin(pluginId);
-            Log.info("Plugin: " + plugin.name + ":" + pluginId + " " + state.name());
+            pluginManager.startPlugin(pluginId);
             var wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
