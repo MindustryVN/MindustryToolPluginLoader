@@ -98,13 +98,15 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }
 
+        checkAndUpdate();
+
         BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
             try {
                 checkAndUpdate();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 5, TimeUnit.MINUTES);
+        }, 5, 5, TimeUnit.MINUTES);
 
         System.out.println("MindustryToolPluginLoader initialized");
     }
