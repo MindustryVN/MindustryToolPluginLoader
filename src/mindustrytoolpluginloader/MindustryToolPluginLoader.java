@@ -159,6 +159,19 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
+        var path = Paths.get(PLUGIN_DIR, plugin.name);
+
+        List<String> loadedPlugins = pluginManager.getPlugins(PluginState.STARTED)
+                .stream()
+                .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
+                .map(p -> p.getPluginId())
+                .toList();
+
+        if (loadedPlugins.size() > 0) {
+            Log.info("Plugin already loaded: " + plugin.name);
+            return;
+        }
+
         String pluginId;
         Log.info("Attempt to load: " + plugin.name);
         try {
