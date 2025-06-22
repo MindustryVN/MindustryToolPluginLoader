@@ -77,14 +77,6 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
-        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
-            try {
-                checkAndUpdate();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }, 5, 5, TimeUnit.MINUTES);
-
         for (var plugin : PLUGINS) {
             try {
                 initPlugin(plugin);
@@ -100,6 +92,14 @@ public class MindustryToolPluginLoader extends Plugin {
                 Log.err("Failed to register event: " + clazz.getName(), e);
             }
         }
+
+        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> {
+            try {
+                checkAndUpdate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 5, 5, TimeUnit.MINUTES);
 
         for (var trigger : EventType.Trigger.values()) {
             try {
@@ -186,9 +186,9 @@ public class MindustryToolPluginLoader extends Plugin {
             throw new RuntimeException("Failed to load plugin: " + plugin.name);
         }
         try {
-            Log.info("Attempt to start: " + plugin.name);
+            Log.info("Attempt to start: " + plugin.name + ":" + pluginId);
             pluginManager.startPlugin(pluginId);
-            Log.info("Plugin started: " + plugin.name);
+            Log.info("Plugin started: " + plugin.name + ":" + pluginId);
             var wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
