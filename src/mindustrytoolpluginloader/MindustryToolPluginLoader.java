@@ -185,6 +185,10 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
+        if (Files.exists(path)) {
+            Files.delete(path);
+        }
+
         var loaded = pluginManager.getPlugin(plugin.getId());
 
         if (loaded != null) {
@@ -201,10 +205,6 @@ public class MindustryToolPluginLoader extends Plugin {
         HttpRequest downloadRequest = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
                 .build();
-
-        if (Files.exists(path)) {
-            Files.delete(path);
-        }
 
         HttpResponse<Path> downloadResponse = client.send(downloadRequest, HttpResponse.BodyHandlers.ofFile(path));
 
@@ -234,7 +234,7 @@ public class MindustryToolPluginLoader extends Plugin {
         try {
             var pluginId = pluginManager.loadPlugin(path);
             pluginManager.startPlugin(pluginId);
-            var wrapper = pluginManager.getPlugin(pluginId);
+            var wrapper = pluginManager.getPlugin(plugin.getId());
 
             if (wrapper == null) {
                 throw new RuntimeException("Plugin not found: " + pluginId);
