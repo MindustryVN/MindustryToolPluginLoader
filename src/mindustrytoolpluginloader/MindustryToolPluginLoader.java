@@ -6,7 +6,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.pf4j.DefaultPluginManager;
-import org.pf4j.LoggingPluginStateListener;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginStateEvent;
 import org.pf4j.PluginStateListener;
