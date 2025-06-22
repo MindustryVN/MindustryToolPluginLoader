@@ -185,19 +185,17 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
-        if (Files.exists(path)) {
-            Files.delete(path);
-        }
-
         var loaded = pluginManager.getPlugin(plugin.getId());
 
         if (loaded != null) {
             var pluginId = loaded.getPluginId();
-
-            pluginManager.stopPlugin(pluginId);
-            pluginManager.unloadPlugin(pluginId);
+            pluginManager.deletePlugin(pluginId);
 
             Log.info("Unloaded plugin: " + plugin.name);
+        }
+
+        if (Files.exists(path)) {
+            Files.delete(path);
         }
 
         // Download new plugin
@@ -234,7 +232,7 @@ public class MindustryToolPluginLoader extends Plugin {
         try {
             var pluginId = pluginManager.loadPlugin(path);
             pluginManager.startPlugin(pluginId);
-            var wrapper = pluginManager.getPlugin(plugin.getId());
+            var wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
                 throw new RuntimeException("Plugin not found: " + pluginId);
