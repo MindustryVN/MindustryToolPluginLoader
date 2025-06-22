@@ -1,16 +1,13 @@
 package mindustrytoolpluginloader;
 
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
-import org.pf4j.PluginState;
-import org.pf4j.PluginStateEvent;
-import org.pf4j.PluginStateListener;
-
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
 
@@ -31,8 +28,10 @@ import java.util.Objects;
 
 public class MindustryToolPluginLoader extends Plugin {
 
-    public final PluginManager pluginManager;
     public static final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
+
+    private final PluginManager pluginManager;
+    private final ConcurrentHashMap<String, MindustryToolPlugin> plugins = new ConcurrentHashMap<>();
 
     public static final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
@@ -73,15 +72,6 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void init() {
-        pluginManager.addPluginStateListener(new PluginStateListener() {
-
-            @Override
-            public void pluginStateChanged(PluginStateEvent event) {
-                Log.info(
-                        event.getPlugin().getPluginId() + ": " + event.getOldState() + " -> " + event.getPluginState());
-            }
-        });
-
         for (var clazz : EventType.class.getDeclaredClasses()) {
             try {
                 Events.on(clazz, this::onEvent);
@@ -108,35 +98,18 @@ public class MindustryToolPluginLoader extends Plugin {
     @Override
     public void registerServerCommands(CommandHandler handler) {
         serverCommandHandler = handler;
-
-        pluginManager.getPlugins()
-                .stream()
-                .map(wrapper -> wrapper.getPlugin())
-                .filter(plugin -> plugin instanceof MindustryToolPlugin)
-                .map(plugin -> (MindustryToolPlugin) plugin)
-                .forEach(plugin -> plugin.registerServerCommands(handler));
+        plugins.forEach((_key, plugin) -> plugin.registerServerCommands(handler));
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler) {
         clientCommandHandler = handler;
-
-        pluginManager.getPlugins()
-                .stream()
-                .map(wrapper -> wrapper.getPlugin())
-                .filter(plugin -> plugin instanceof MindustryToolPlugin)
-                .map(plugin -> (MindustryToolPlugin) plugin)
-                .forEach(plugin -> plugin.registerClientCommands(handler));
+        plugins.forEach((_key, plugin) -> plugin.registerClientCommands(handler));
     }
 
     public void onEvent(Object event) {
         try {
-            pluginManager.getPlugins(PluginState.STARTED)
-                    .stream()
-                    .map(wrapper -> wrapper.getPlugin())
-                    .filter(plugin -> plugin instanceof MindustryToolPlugin)
-                    .map(plugin -> (MindustryToolPlugin) plugin)
-                    .forEach(plugin -> plugin.onEvent(event));
+            plugins.forEach((_key, plugin) -> plugin.onEvent(event));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -186,13 +159,19 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
-        var loaded = pluginManager.getPlugin(plugin.getId());
+        try {
+            var loaded = pluginManager.getPlugin(plugin.getId());
 
-        if (loaded != null) {
-            pluginManager.stopPlugin(loaded.getPluginId());
-            pluginManager.unloadPlugin(loaded.getPluginId());
+            if (loaded != null) {
+                pluginManager.stopPlugin(loaded.getPluginId());
+                pluginManager.unloadPlugin(loaded.getPluginId());
 
-            Log.info("Unloaded plugin: " + plugin.name);
+                Log.info("Unloaded plugin: " + plugin.name);
+            }
+        } catch (Exception e) {
+            Log.err("Failed to unload plugin: " + plugin.name, e);
+        } finally {
+            plugins.remove(plugin.id);
         }
 
         if (Files.exists(path)) {
@@ -252,6 +231,8 @@ public class MindustryToolPluginLoader extends Plugin {
                 if (serverCommandHandler != null) {
                     mindustryToolPlugin.registerServerCommands(serverCommandHandler);
                 }
+
+                plugins.put(pluginId, mindustryToolPlugin);
             } else {
                 Log.info("Invalid plugin: " + instance.getClass().getName());
             }
