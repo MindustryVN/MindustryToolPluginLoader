@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
-import org.pf4j.PluginState;
 
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
@@ -161,7 +160,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
         var path = Paths.get(PLUGIN_DIR, plugin.name);
 
-        List<String> loadedPlugins = pluginManager.getPlugins(PluginState.STARTED)
+        List<String> loadedPlugins = pluginManager.getPlugins()
                 .stream()
                 .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                 .map(p -> p.getPluginId())
@@ -250,7 +249,7 @@ public class MindustryToolPluginLoader extends Plugin {
             }
             var path = Paths.get(PLUGIN_DIR, plugin.name);
 
-            List<String> loadedPlugins = pluginManager.getPlugins(PluginState.STARTED)
+            List<String> loadedPlugins = pluginManager.getPlugins()
                     .stream()
                     .filter(p -> path.toAbsolutePath().toString().contains(p.getPluginPath().toString()))
                     .map(p -> p.getPluginId())
