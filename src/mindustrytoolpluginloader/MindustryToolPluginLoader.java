@@ -159,6 +159,28 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
+        // Download new plugin
+        Log.info("Downloading updated plugin: " + plugin.name);
+        HttpRequest downloadRequest = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
+                .build();
+
+        var downloadResponse = client.send(downloadRequest, HttpResponse.BodyHandlers.ofByteArray());
+
+        if (downloadResponse.statusCode() >= 300) {
+            Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
+
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
+
+            return;
+        }
+
+        if (Files.exists(path)) {
+            Files.delete(path);
+        }
+
         try {
             var loaded = pluginManager.getPlugin(plugin.getId());
 
@@ -174,29 +196,11 @@ public class MindustryToolPluginLoader extends Plugin {
             plugins.remove(plugin.id);
         }
 
-        if (Files.exists(path)) {
-            Files.delete(path);
+        try {
+            new Fi(path.toAbsolutePath().toString()).writeBytes(downloadResponse.body());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // Download new plugin
-        Log.info("Downloading updated plugin: " + plugin.name);
-        HttpRequest downloadRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
-                .build();
-
-        HttpResponse<Path> downloadResponse = client.send(downloadRequest, HttpResponse.BodyHandlers.ofFile(path));
-
-        if (downloadResponse.statusCode() >= 300) {
-            Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
-
-            if (Files.exists(path)) {
-                Files.delete(path);
-            }
-
-            return;
-        }
-
-        Log.info("Downloaded to " + downloadResponse.body());
 
         if (meta == null) {
             meta = objectMapper.createObjectNode();
