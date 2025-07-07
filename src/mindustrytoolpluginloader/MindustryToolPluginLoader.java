@@ -155,6 +155,12 @@ public class MindustryToolPluginLoader extends Plugin {
 
         var path = Paths.get(PLUGIN_DIR, plugin.name);
 
+        if (updatedAt == null) {
+            Log.info("Fail to check newest version: " + plugin.name);
+            return;
+        }
+
+
         if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
             return;
         }
