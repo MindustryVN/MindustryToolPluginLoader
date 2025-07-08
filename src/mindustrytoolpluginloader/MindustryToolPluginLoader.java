@@ -28,32 +28,32 @@ import java.util.Objects;
 
 public class MindustryToolPluginLoader extends Plugin {
 
-    public static final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
+    public final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
 
     private final PluginManager pluginManager;
     private final ConcurrentHashMap<String, MindustryToolPlugin> plugins = new ConcurrentHashMap<>();
 
-    public static final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
+    public final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
 
     @Data
-    public static class PluginData {
+    public class PluginData {
         final String id;
         final String name;
         final String url;
     }
 
-    private static final List<PluginData> PLUGINS = List.of(
+    private final List<PluginData> PLUGINS = List.of(
             new PluginData("mindustry-tool", "ServerController.jar",
                     "https://api.github.com/repos/MindustryVN/ServerController/releases/latest"));
 
-    private static final String PLUGIN_DIR = "config/plugins";
-    private static final Path METADATA_PATH = Paths.get("config/plugin-meta.json");
+    private final String PLUGIN_DIR = "config/plugins";
+    private final Path METADATA_PATH = Paths.get("config/plugin-meta.json");
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static CommandHandler clientCommandHandler;
-    private static CommandHandler serverCommandHandler;
+    private CommandHandler clientCommandHandler;
+    private CommandHandler serverCommandHandler;
 
     public MindustryToolPluginLoader() {
         try {
@@ -159,7 +159,6 @@ public class MindustryToolPluginLoader extends Plugin {
             Log.info("Fail to check newest version: " + plugin.name);
             return;
         }
-
 
         if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
             return;
