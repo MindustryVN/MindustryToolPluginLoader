@@ -90,7 +90,7 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }
 
-        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(() -> checkAndUpdate(), 5, 5, TimeUnit.MINUTES);
+        BACKGROUND_SCHEDULER.scheduleWithFixedDelay(this::checkAndUpdate, 5, 5, TimeUnit.MINUTES);
 
         Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
 
@@ -112,7 +112,6 @@ public class MindustryToolPluginLoader extends Plugin {
     public void onEvent(Object event) {
         try {
             plugins.forEach((_key, plugin) -> plugin.onEvent(event));
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -230,6 +229,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
             if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
+               
                 mindustryToolPlugin.init();
 
                 if (clientCommandHandler != null) {
@@ -243,11 +243,12 @@ public class MindustryToolPluginLoader extends Plugin {
                 plugins.put(pluginId, mindustryToolPlugin);
             } else {
                 Log.info("Invalid plugin: " + instance.getClass().getName());
-            }
+            } 
 
             Log.info("Plugin updated and reloaded: " + plugin.name);
 
         } catch (Exception e) {
+            plugins.remove(plugin.id);
             e.printStackTrace();
             try {
                 Files.delete(path);
