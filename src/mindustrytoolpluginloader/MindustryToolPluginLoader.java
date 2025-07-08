@@ -20,6 +20,7 @@ import arc.util.Log;
 import lombok.Data;
 import mindustry.game.EventType;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.http.*;
 import java.nio.file.*;
@@ -31,7 +32,7 @@ public class MindustryToolPluginLoader extends Plugin {
     public final UUID SERVER_ID = UUID.fromString(System.getenv("SERVER_ID"));
 
     private final PluginManager pluginManager;
-    private final ConcurrentHashMap<String, MindustryToolPlugin> plugins = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, WeakReference<MindustryToolPlugin>> plugins = new ConcurrentHashMap<>();
 
     public final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
@@ -100,18 +101,31 @@ public class MindustryToolPluginLoader extends Plugin {
     @Override
     public void registerServerCommands(CommandHandler handler) {
         serverCommandHandler = handler;
-        plugins.forEach((_key, plugin) -> plugin.registerServerCommands(handler));
+        plugins.values()
+                .stream()
+                .map(value -> value.get())
+                .filter(value -> value != null)
+                .forEach((plugin) -> plugin.registerServerCommands(handler));
+
     }
 
     @Override
     public void registerClientCommands(CommandHandler handler) {
         clientCommandHandler = handler;
-        plugins.forEach((_key, plugin) -> plugin.registerClientCommands(handler));
+        plugins.values()
+                .stream()
+                .map(value -> value.get())
+                .filter(value -> value != null)
+                .forEach((plugin) -> plugin.registerClientCommands(handler));
     }
 
     public void onEvent(Object event) {
         try {
-            plugins.forEach((_key, plugin) -> plugin.onEvent(event));
+            plugins.values()
+                    .stream()
+                    .map(value -> value.get())
+                    .filter(value -> value != null)
+                    .forEach((plugin) -> plugin.onEvent(event));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -229,7 +243,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
             if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
-               
+
                 mindustryToolPlugin.init();
 
                 if (clientCommandHandler != null) {
@@ -240,10 +254,10 @@ public class MindustryToolPluginLoader extends Plugin {
                     mindustryToolPlugin.registerServerCommands(serverCommandHandler);
                 }
 
-                plugins.put(pluginId, mindustryToolPlugin);
+                plugins.put(pluginId, new WeakReference<>(mindustryToolPlugin));
             } else {
                 Log.info("Invalid plugin: " + instance.getClass().getName());
-            } 
+            }
 
             Log.info("Plugin updated and reloaded: " + plugin.name);
 
