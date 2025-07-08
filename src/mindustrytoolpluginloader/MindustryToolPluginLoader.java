@@ -191,7 +191,6 @@ public class MindustryToolPluginLoader extends Plugin {
             var loaded = pluginManager.getPlugin(plugin.getId());
 
             if (loaded != null) {
-                pluginManager.stopPlugin(loaded.getPluginId());
                 pluginManager.unloadPlugin(loaded.getPluginId());
 
                 Log.info("Unloaded plugin: " + plugin.name);
