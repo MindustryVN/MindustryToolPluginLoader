@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.pf4j.JarPluginManager;
+import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
@@ -68,7 +68,7 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
-        pluginManager = new JarPluginManager();
+        pluginManager = new DefaultPluginManager();
     }
 
     @Override
