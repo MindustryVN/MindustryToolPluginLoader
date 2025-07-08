@@ -199,6 +199,8 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         try {
+            plugins.remove(plugin.id);
+
             PluginWrapper loaded = pluginManager.getPlugin(plugin.getId());
 
             if (loaded != null) {
@@ -209,7 +211,6 @@ public class MindustryToolPluginLoader extends Plugin {
         } catch (Exception e) {
             Log.err("Failed to unload plugin: " + plugin.name, e);
         } finally {
-            plugins.remove(plugin.id);
         }
 
         try {
