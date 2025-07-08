@@ -6,7 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.pf4j.DefaultPluginManager;
+import org.pf4j.JarPluginManager;
 import org.pf4j.PluginManager;
 import arc.util.CommandHandler;
 import mindustry.mod.Plugin;
@@ -68,7 +68,7 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
-        pluginManager = new DefaultPluginManager();
+        pluginManager = new JarPluginManager();
     }
 
     @Override
@@ -195,15 +195,12 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
-        if (Files.exists(path)) {
-            Files.delete(path);
-        }
 
         try {
             var loaded = pluginManager.getPlugin(plugin.getId());
 
             if (loaded != null) {
-                pluginManager.unloadPlugin(loaded.getPluginId());
+                pluginManager.deletePlugin(loaded.getPluginId());
 
                 Log.info("Unloaded plugin: " + plugin.name);
             }
