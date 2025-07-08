@@ -6,19 +6,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.pf4j.CompoundPluginLoader;
-import org.pf4j.DefaultPluginLoader;
 import org.pf4j.DefaultPluginManager;
-import org.pf4j.DevelopmentPluginLoader;
-import org.pf4j.JarPluginLoader;
-import org.pf4j.PluginClassLoader;
-import org.pf4j.PluginDescriptor;
-import org.pf4j.PluginLoader;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
 import arc.util.CommandHandler;
-import mindustry.mod.ModClassLoader;
 import mindustry.mod.Plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,31 +71,7 @@ public class MindustryToolPluginLoader extends Plugin {
             e.printStackTrace();
         }
 
-        pluginManager = new DefaultPluginManager() {
-            @Override
-            protected PluginLoader createPluginLoader() {
-                return new CompoundPluginLoader()
-                        .add(new DevelopmentPluginLoader(this), this::isDevelopment)
-                        .add(new JarPluginLoader(this) {
-                            @Override
-                            public ClassLoader loadPlugin(Path pluginPath, PluginDescriptor pluginDescriptor) {
-                                PluginClassLoader pluginClassLoader = new PluginClassLoader(pluginManager,
-                                        pluginDescriptor, ModClassLoader.class.getClassLoader());
-                                pluginClassLoader.addFile(pluginPath.toFile());
-
-                                return pluginClassLoader;
-                            }
-
-                        }, this::isNotDevelopment)
-                        .add(new DefaultPluginLoader(this) {
-                            protected PluginClassLoader createPluginClassLoader(Path pluginPath,
-                                    PluginDescriptor pluginDescriptor) {
-                                return new PluginClassLoader(pluginManager, pluginDescriptor,
-                                        ModClassLoader.class.getClassLoader());
-                            }
-                        }, this::isNotDevelopment);
-            }
-        };
+        pluginManager = new DefaultPluginManager();
     }
 
     @Override
