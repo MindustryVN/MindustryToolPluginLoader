@@ -305,11 +305,6 @@ public class MindustryToolPluginLoader extends Plugin {
         } catch (Exception e) {
             plugins.remove(plugin.id);
             e.printStackTrace();
-            try {
-                Files.delete(path);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
             throw new RuntimeException("Failed to load plugin: " + plugin.name, e);
         }
     }
