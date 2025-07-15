@@ -32,14 +32,12 @@ dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
 
-	compileOnly 'org.projectlombok:lombok:1.16.18'
     
     implementation "org.pf4j:pf4j:3.13.0"     
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
     implementation "org.slf4j:slf4j-simple:2.0.16"
     implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
 
-    annotationProcessor 'org.projectlombok:lombok:1.16.18'
 	annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
 }
 

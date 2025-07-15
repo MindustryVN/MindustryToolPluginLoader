@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import arc.Events;
 import arc.files.Fi;
 import arc.util.Log;
-import lombok.Data;
 import mindustry.game.EventType;
 
 import java.io.IOException;
@@ -41,11 +40,28 @@ public class MindustryToolPluginLoader extends Plugin {
     public final ScheduledExecutorService BACKGROUND_SCHEDULER = Executors
             .newSingleThreadScheduledExecutor();
 
-    @Data
     public class PluginData {
         final String id;
         final String name;
         final String url;
+        
+        public String getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public PluginData(String id, String name, String url) {
+            this.id = id;
+            this.name = name;
+            this.url = url;
+        }
     }
 
     private final List<PluginData> PLUGINS = List.of(
