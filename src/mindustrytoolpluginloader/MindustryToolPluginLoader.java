@@ -169,6 +169,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
         Http.get("https://api.mindustry-tool.com/api/v3/plugins/version?path=" + url)
                 .error(error -> Log.err(error))
+                .timeout(5000)
                 .submit(res -> {
                     result.complete(res.getResultAsString());
                 });
@@ -180,12 +181,13 @@ public class MindustryToolPluginLoader extends Plugin {
         CompletableFuture<HttpResponse> result = new CompletableFuture<>();
 
         Http.get("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url)
+                .timeout(60 * 1000)
                 .error(error -> Log.err(error))
                 .submit(res -> {
                     result.complete(res);
                 });
 
-        return result.get(5, TimeUnit.SECONDS);
+        return result.get(60, TimeUnit.SECONDS);
     }
 
     public void checkAndUpdate(PluginData plugin) throws Exception {
