@@ -1,6 +1,7 @@
 package mindustrytoolpluginloader;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -11,6 +12,8 @@ import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
 import arc.util.CommandHandler;
+import arc.util.Http;
+import arc.util.Http.HttpResponse;
 import mindustry.mod.Plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,8 +27,6 @@ import mindustry.game.EventType;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.net.URI;
-import java.net.http.*;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Objects;
@@ -78,7 +79,7 @@ public class MindustryToolPluginLoader extends Plugin {
     public void init() {
         checkAndUpdate();
 
-        for (var clazz : EventType.class.getDeclaredClasses()) {
+        for (Class<?> clazz : EventType.class.getDeclaredClasses()) {
             try {
                 Events.on(clazz, this::onEvent);
             } catch (Exception e) {
@@ -86,7 +87,7 @@ public class MindustryToolPluginLoader extends Plugin {
             }
         }
 
-        for (var trigger : EventType.Trigger.values()) {
+        for (EventType.Trigger trigger : EventType.Trigger.values()) {
             try {
                 Events.run(trigger, () -> onEvent(trigger));
             } catch (Exception e) {
@@ -135,7 +136,7 @@ public class MindustryToolPluginLoader extends Plugin {
     }
 
     public void checkAndUpdate() {
-        for (var plugin : PLUGINS) {
+        for (PluginData plugin : PLUGINS) {
             try {
                 checkAndUpdate(plugin);
             } catch (Exception e) {
@@ -144,32 +145,45 @@ public class MindustryToolPluginLoader extends Plugin {
         }
     }
 
-    public void checkAndUpdate(PluginData plugin) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/version?path="
-                        + plugin.url))
-                .build();
+    private String getPluginVersion(String url) throws Exception {
+        CompletableFuture<String> result = new CompletableFuture<>();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        String updatedAt = response.body();
+        Http.get("https://api.mindustry-tool.com/api/v3/plugins/version?path=" + url)
+                .error(error -> Log.err(error))
+                .submit(res -> {
+                    result.complete(res.getResultAsString());
+                });
+
+        return result.get(5, TimeUnit.SECONDS);
+    }
+
+    private HttpResponse downloadPlugin(String url) throws Exception {
+        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
+
+        Http.get("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url)
+                .error(error -> Log.err(error))
+                .submit(res -> {
+                    result.complete(res);
+                });
+
+        return result.get(5, TimeUnit.SECONDS);
+    }
+
+    public void checkAndUpdate(PluginData plugin) throws Exception {
+        String updatedAt = getPluginVersion(plugin.getUrl());
 
         String lastUpdated = null;
-        ObjectNode meta = null;
+        ObjectNode meta = objectMapper.createObjectNode();
 
         if (Files.exists(METADATA_PATH)) {
-            try {
-                meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
+            meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
 
-                if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
-                    lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
+                lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
             }
         }
 
-        var path = Paths.get(PLUGIN_DIR, plugin.name);
+        Path path = Paths.get(PLUGIN_DIR, plugin.name);
 
         if (updatedAt == null) {
             Log.info("Fail to check newest version: " + plugin.name);
@@ -182,14 +196,10 @@ public class MindustryToolPluginLoader extends Plugin {
 
         // Download new plugin
         Log.info("Downloading updated plugin: " + plugin.name);
-        HttpRequest downloadRequest = HttpRequest.newBuilder()
-                .uri(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + plugin.url))
-                .build();
-
-        var downloadResponse = client.send(downloadRequest, HttpResponse.BodyHandlers.ofByteArray());
-
-        if (downloadResponse.statusCode() >= 300) {
-            Log.info("Failed to download plugin: " + plugin.url + " " + downloadResponse.statusCode());
+        HttpResponse response = downloadPlugin(plugin.getUrl());
+        if (response.getStatus().code >= 300) {
+            Log.info("Failed to download plugin: " + plugin.url + " "
+                    + response.getStatus().code);
 
             if (Files.exists(path)) {
                 Files.delete(path);
@@ -214,15 +224,10 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         try {
-            new Fi(path.toAbsolutePath().toString()).writeBytes(downloadResponse.body());
+            new Fi(path.toAbsolutePath().toString()).writeBytes(response.getResult());
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        if (meta == null) {
-            meta = objectMapper.createObjectNode();
-        }
-
         // Save updated metadata
         meta
                 .putObject(plugin.getName())
@@ -231,17 +236,18 @@ public class MindustryToolPluginLoader extends Plugin {
         Files.writeString(METADATA_PATH, meta.toPrettyString());
 
         try {
-            var pluginId = pluginManager.loadPlugin(path);
-            var wrapper = pluginManager.getPlugin(pluginId);
+            String pluginId = pluginManager.loadPlugin(path);
+            PluginWrapper wrapper = pluginManager.getPlugin(pluginId);
 
             if (wrapper == null) {
                 throw new RuntimeException("Plugin not found: " + pluginId);
             }
 
             pluginManager.startPlugin(pluginId);
-            var instance = wrapper.getPlugin();
+            org.pf4j.Plugin instance = wrapper.getPlugin();
 
-            if (instance instanceof MindustryToolPlugin mindustryToolPlugin) {
+            if (instance instanceof MindustryToolPlugin) {
+                MindustryToolPlugin mindustryToolPlugin = (MindustryToolPlugin) instance;
                 Log.info("Init plugin: " + mindustryToolPlugin.getClass().getName());
 
                 mindustryToolPlugin.init();

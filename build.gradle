@@ -2,17 +2,18 @@ apply plugin: "java"
 
 version '1.0'
 
-sourceCompatibility = JavaVersion.VERSION_17
+java {
+  toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 
 sourceSets.main.java.srcDirs = ["src"]
 
 compileJava.options.encoding = "UTF-8"
 compileTestJava.options.encoding = "UTF-8"
 
-
-// tasks.withType(JavaCompile) {
-//     options.release = 8
-// }
 
 
 repositories{
@@ -27,20 +28,18 @@ ext{
     jabelVersion = "93fde537c7"
 }
 
-
-
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
 
-	compileOnly 'org.projectlombok:lombok:1.18.32'
+	compileOnly 'org.projectlombok:lombok:1.16.18'
     
     implementation "org.pf4j:pf4j:3.13.0"     
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
     implementation "org.slf4j:slf4j-simple:2.0.16"
-    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
 
-    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    annotationProcessor 'org.projectlombok:lombok:1.16.18'
 	annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
 }
 
