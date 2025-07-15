@@ -25,9 +25,13 @@ import arc.files.Fi;
 import arc.util.Log;
 import mindustry.game.EventType;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.List;
@@ -201,6 +205,36 @@ public class MindustryToolPluginLoader extends Plugin {
         return result.get(60, TimeUnit.SECONDS);
     }
 
+    private void downloadFile(String pluginUrl, String savePath) {
+        try {
+
+            URL url = URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + pluginUrl).toURL();
+            HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+            httpConn.setReadTimeout(60_000);
+            httpConn.setConnectTimeout(60_000);
+            int responseCode = httpConn.getResponseCode();
+
+            // Check HTTP response code
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                try (BufferedInputStream in = new BufferedInputStream(httpConn.getInputStream());
+                        FileOutputStream out = new FileOutputStream(savePath)) {
+
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                }
+            } else {
+                throw new IOException("Server returned non-OK response code: " + responseCode);
+            }
+
+            httpConn.disconnect();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void checkAndUpdate(PluginData plugin) throws Exception {
         String updatedAt = getPluginVersion(plugin.getUrl());
 
@@ -228,19 +262,23 @@ public class MindustryToolPluginLoader extends Plugin {
 
         // Download new plugin
         Log.info("Downloading updated plugin: " + plugin.name);
-        HttpResponse response = downloadPlugin(plugin.getUrl());
-        if (response.getStatus().code >= 300) {
-            Log.info("Failed to download plugin: " + plugin.url + " "
-                    + response.getStatus().code);
 
-            if (Files.exists(path)) {
-                Files.delete(path);
-            }
+        Fi fi = new Fi(path.toAbsolutePath().toString());
+        fi.file().createNewFile();
 
-            return;
-        }
+        downloadFile(plugin.getUrl(), path.toString());
+        // if (response.getStatus().code >= 300) {
+        //     Log.info("Failed to download plugin: " + plugin.url + " "
+        //             + response.getStatus().code);
 
-        Log.info("Downloaded plugin with status: " + response.getStatus().code);
+        //     if (Files.exists(path)) {
+        //         Files.delete(path);
+        //     }
+
+        //     return;
+        // }
+
+        // Log.info("Downloaded plugin with status: " + response.getStatus().code);
 
         try {
             plugins.remove(plugin.id);
@@ -257,11 +295,9 @@ public class MindustryToolPluginLoader extends Plugin {
         } finally {
         }
 
-        Fi fi = new Fi(path.toAbsolutePath().toString());
-        fi.file().createNewFile();
-        byte[] bytes = response.getResult();
-        Log.info("Downloaded plugin size: " + bytes.length + " bytes");
-        fi.writeBytes(bytes);
+        // byte[] bytes = response.getResult();
+        // Log.info("Downloaded plugin size: " + bytes.length + " bytes");
+        // fi.writeBytes(bytes);
 
         // Save updated metadata
         meta
