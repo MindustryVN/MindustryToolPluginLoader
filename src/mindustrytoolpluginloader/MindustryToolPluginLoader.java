@@ -194,7 +194,7 @@ public class MindustryToolPluginLoader extends Plugin {
                     result.completeExceptionally(error);
                     Log.err(error);
                 })
-                .submit(res -> {
+                .block(res -> {
                     result.complete(res);
                 });
 
