@@ -183,8 +183,9 @@ public class MindustryToolPluginLoader extends Plugin {
 
     private HttpResponse downloadPlugin(String url) throws Exception {
         CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-
-        Http.get(URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url).toString())
+        String uri = URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url).toString();
+        Log.info("Downloading plugin: " + uri);
+        Http.get(uri)
                 .timeout(60 * 1000)
                 .error(error -> {
                     result.completeExceptionally(error);
