@@ -235,6 +235,9 @@ public class MindustryToolPluginLoader extends Plugin {
             return;
         }
 
+        Log.info("Downloaded plugin with status: " + response.getStatus().code);
+
+
         try {
             plugins.remove(plugin.id);
 
