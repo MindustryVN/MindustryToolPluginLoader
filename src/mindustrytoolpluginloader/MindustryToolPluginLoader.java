@@ -175,7 +175,9 @@ public class MindustryToolPluginLoader extends Plugin {
                 })
                 .timeout(5000)
                 .submit(res -> {
-                    result.complete(res.getResultAsString());
+                    String version = res.getResultAsString();
+                    result.complete(version);
+                    Log.info("Plugin version: " + version);
                 });
 
         return result.get(5, TimeUnit.SECONDS);
@@ -186,6 +188,7 @@ public class MindustryToolPluginLoader extends Plugin {
         String uri = URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url).toString();
         Log.info("Downloading plugin: " + uri);
         Http.get(uri)
+                .redirects(true)
                 .timeout(60 * 1000)
                 .error(error -> {
                     result.completeExceptionally(error);
