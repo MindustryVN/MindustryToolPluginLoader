@@ -14,7 +14,6 @@ import org.pf4j.PluginWrapper;
 
 import arc.util.CommandHandler;
 import arc.util.Http;
-import arc.util.Http.HttpResponse;
 import mindustry.mod.Plugin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -187,24 +186,6 @@ public class MindustryToolPluginLoader extends Plugin {
         return result.get(5, TimeUnit.SECONDS);
     }
 
-    private HttpResponse downloadPlugin(String url) throws Exception {
-        CompletableFuture<HttpResponse> result = new CompletableFuture<>();
-        String uri = URI.create("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url).toString();
-        Log.info("Downloading plugin: " + uri);
-        Http.get(uri)
-                .redirects(true)
-                .timeout(60 * 1000)
-                .error(error -> {
-                    result.completeExceptionally(error);
-                    Log.err(error);
-                })
-                .block(res -> {
-                    result.complete(res);
-                });
-
-        return result.get(60, TimeUnit.SECONDS);
-    }
-
     private void downloadFile(String pluginUrl, String savePath) {
         try {
 
@@ -268,14 +249,14 @@ public class MindustryToolPluginLoader extends Plugin {
 
         downloadFile(plugin.getUrl(), path.toString());
         // if (response.getStatus().code >= 300) {
-        //     Log.info("Failed to download plugin: " + plugin.url + " "
-        //             + response.getStatus().code);
+        // Log.info("Failed to download plugin: " + plugin.url + " "
+        // + response.getStatus().code);
 
-        //     if (Files.exists(path)) {
-        //         Files.delete(path);
-        //     }
+        // if (Files.exists(path)) {
+        // Files.delete(path);
+        // }
 
-        //     return;
+        // return;
         // }
 
         // Log.info("Downloaded plugin with status: " + response.getStatus().code);
