@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
@@ -27,6 +28,7 @@ import mindustry.game.EventType;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,7 +46,7 @@ public class MindustryToolPluginLoader extends Plugin {
         final String id;
         final String name;
         final String url;
-        
+
         public String getId() {
             return id;
         }
@@ -64,7 +66,7 @@ public class MindustryToolPluginLoader extends Plugin {
         }
     }
 
-    private final List<PluginData> PLUGINS = List.of(
+    private final List<PluginData> PLUGINS = Arrays.asList(
             new PluginData("mindustry-tool", "ServerController.jar",
                     "https://api.github.com/repos/MindustryVN/ServerController/releases/latest"));
 
@@ -113,7 +115,8 @@ public class MindustryToolPluginLoader extends Plugin {
 
         BACKGROUND_SCHEDULER.scheduleWithFixedDelay(this::checkAndUpdate, 5, 5, TimeUnit.MINUTES);
 
-        Log.info("Loaded plugins: " + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).toList());
+        Log.info("Loaded plugins: "
+                + pluginManager.getPlugins().stream().map(plugin -> plugin.getPluginId()).collect(Collectors.toList()));
 
         System.out.println("MindustryToolPluginLoader initialized");
     }
@@ -192,7 +195,7 @@ public class MindustryToolPluginLoader extends Plugin {
         ObjectNode meta = objectMapper.createObjectNode();
 
         if (Files.exists(METADATA_PATH)) {
-            meta = (ObjectNode) objectMapper.readTree(Files.readString(METADATA_PATH));
+            meta = (ObjectNode) objectMapper.readTree(new Fi(METADATA_PATH.toFile()).readString());
 
             if (meta.has(plugin.name) && meta.path(plugin.name).has("updated_at")) {
                 lastUpdated = meta.path(plugin.name).path("updated_at").asText(null);
@@ -249,7 +252,7 @@ public class MindustryToolPluginLoader extends Plugin {
                 .putObject(plugin.getName())
                 .put("updated_at", updatedAt).put("url", plugin.url);
 
-        Files.writeString(METADATA_PATH, meta.toPrettyString());
+        new Fi(METADATA_PATH.toFile()).writeString(meta.toPrettyString());
 
         try {
             String pluginId = pluginManager.loadPlugin(path);
