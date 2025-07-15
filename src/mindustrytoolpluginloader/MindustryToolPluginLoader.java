@@ -252,7 +252,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
         Fi fi = new Fi(path.toAbsolutePath().toString());
         fi.file().createNewFile();
-        fi.writeBytes(response.getResult());
+        fi.write(response.getResultAsStream(), false);
 
         // Save updated metadata
         meta
