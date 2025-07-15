@@ -257,7 +257,9 @@ public class MindustryToolPluginLoader extends Plugin {
 
         Fi fi = new Fi(path.toAbsolutePath().toString());
         fi.file().createNewFile();
-        fi.write(response.getResultAsStream(), false);
+        byte[] bytes = response.getResult();
+        Log.info("Downloaded plugin size: " + bytes.length + " bytes");
+        fi.writeBytes(bytes);
 
         // Save updated metadata
         meta
