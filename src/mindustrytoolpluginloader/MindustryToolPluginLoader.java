@@ -262,7 +262,13 @@ public class MindustryToolPluginLoader extends Plugin {
                 .putObject(plugin.getName())
                 .put("updated_at", updatedAt).put("url", plugin.url);
 
-        new Fi(METADATA_PATH.toFile()).writeString(meta.toPrettyString());
+        Fi metaFile = new Fi(METADATA_PATH.toFile());
+        metaFile.file().createNewFile();
+        metaFile.writeString(meta.toPrettyString());
+
+        if (!Files.exists(path)) {
+            throw new RuntimeException("Plugin file not found: " + path);
+        }
 
         try {
             String pluginId = pluginManager.loadPlugin(path);
