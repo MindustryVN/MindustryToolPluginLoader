@@ -27,6 +27,8 @@ import mindustry.game.EventType;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.List;
@@ -167,7 +169,8 @@ public class MindustryToolPluginLoader extends Plugin {
     private String getPluginVersion(String url) throws Exception {
         CompletableFuture<String> result = new CompletableFuture<>();
 
-        Http.get("https://api.mindustry-tool.com/api/v3/plugins/version?path=" + url)
+        Http.get("https://api.mindustry-tool.com/api/v3/plugins/version?path=" + URLEncoder.encode(url,
+                StandardCharsets.UTF_8))
                 .error(error -> {
                     result.completeExceptionally(error);
                     Log.err(error);
@@ -183,7 +186,8 @@ public class MindustryToolPluginLoader extends Plugin {
     private HttpResponse downloadPlugin(String url) throws Exception {
         CompletableFuture<HttpResponse> result = new CompletableFuture<>();
 
-        Http.get("https://api.mindustry-tool.com/api/v3/plugins/download?path=" + url)
+        Http.get("https://api.mindustry-tool.com/api/v3/plugins/download?path="
+                + URLEncoder.encode(url, StandardCharsets.UTF_8))
                 .timeout(60 * 1000)
                 .error(error -> {
                     result.completeExceptionally(error);
@@ -236,7 +240,6 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         Log.info("Downloaded plugin with status: " + response.getStatus().code);
-
 
         try {
             plugins.remove(plugin.id);
