@@ -251,7 +251,9 @@ public class MindustryToolPluginLoader extends Plugin {
         }
 
         try {
-            new Fi(path.toAbsolutePath().toString()).writeBytes(response.getResult());
+            Fi fi = new Fi(path.toAbsolutePath().toString());
+            fi.file().createNewFile();
+            fi.writeBytes(response.getResult());
         } catch (Exception e) {
             e.printStackTrace();
         }
