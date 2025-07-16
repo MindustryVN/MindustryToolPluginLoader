@@ -180,7 +180,6 @@ public class MindustryToolPluginLoader extends Plugin {
                 .submit(res -> {
                     String version = res.getResultAsString();
                     result.complete(version);
-                    Log.info("Plugin version: " + version);
                 });
 
         return result.get(5, TimeUnit.SECONDS);
