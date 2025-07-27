@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import arc.Events;
 import arc.files.Fi;
 import arc.util.Log;
+import arc.util.Http.HttpStatusException;
 import mindustry.game.EventType;
 
 import java.io.BufferedInputStream;
@@ -91,7 +92,7 @@ public class MindustryToolPluginLoader extends Plugin {
             new Fi(PLUGIN_DIR).emptyDirectory();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.err(e);
         }
 
         pluginManager = new DefaultPluginManager();
@@ -154,7 +155,7 @@ public class MindustryToolPluginLoader extends Plugin {
                     .filter(value -> value != null)
                     .forEach((plugin) -> plugin.onEvent(event));
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.err(e);
         }
     }
 
@@ -162,8 +163,8 @@ public class MindustryToolPluginLoader extends Plugin {
         for (PluginData plugin : PLUGINS) {
             try {
                 checkAndUpdate(plugin);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Throwable e) {
+                Log.err(e);
             }
         }
     }
@@ -326,7 +327,7 @@ public class MindustryToolPluginLoader extends Plugin {
 
         } catch (Exception e) {
             plugins.remove(plugin.id);
-            e.printStackTrace();
+            Log.err(e);
             throw new RuntimeException("Failed to load plugin: " + plugin.name, e);
         }
     }
