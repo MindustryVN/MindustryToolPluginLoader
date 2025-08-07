@@ -100,7 +100,11 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void init() {
-        checkAndUpdate();
+        try {
+            checkAndUpdate();
+        } catch (Exception error) {
+            Log.err(error);
+        }
 
         for (Class<?> clazz : EventType.class.getDeclaredClasses()) {
             try {
@@ -163,7 +167,7 @@ public class MindustryToolPluginLoader extends Plugin {
         for (PluginData plugin : PLUGINS) {
             try {
                 checkAndUpdate(plugin);
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 Log.err(e);
             }
         }
@@ -217,7 +221,12 @@ public class MindustryToolPluginLoader extends Plugin {
     }
 
     public void checkAndUpdate(PluginData plugin) throws Exception {
-        String updatedAt = getPluginVersion(plugin.getUrl());
+        String updatedAt = "";
+        try {
+            updatedAt = getPluginVersion(plugin.getUrl());
+        } catch (Exception error) {
+            Log.err("Failed to check newest version: " + plugin.name, error);
+        }
 
         String lastUpdated = null;
         ObjectNode meta = objectMapper.createObjectNode();
@@ -233,11 +242,13 @@ public class MindustryToolPluginLoader extends Plugin {
         Path path = Paths.get(PLUGIN_DIR, plugin.name);
 
         if (updatedAt == null) {
-            Log.info("Fail to check newest version: " + plugin.name);
+            // Use the current version if can not find the newest
+            loadPlugin(plugin);
             return;
         }
 
-        if (updatedAt != null && Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
+        if (Objects.equals(updatedAt, lastUpdated) && Files.exists(path)) {
+            loadPlugin(plugin);
             return;
         }
 
@@ -293,6 +304,15 @@ public class MindustryToolPluginLoader extends Plugin {
             throw new RuntimeException("Plugin file not found: " + path);
         }
 
+        loadPlugin(plugin);
+    }
+
+    private void loadPlugin(PluginData plugin) {
+        if (plugins.containsKey(plugin.id)) {
+            return;
+        }
+
+        Path path = Paths.get(PLUGIN_DIR, plugin.name);
         try {
             String pluginId = pluginManager.loadPlugin(path);
             PluginWrapper wrapper = pluginManager.getPlugin(pluginId);
