@@ -19,6 +19,7 @@ import mindustry.mod.Plugin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import arc.Core;
 import arc.Events;
 import arc.files.Fi;
 import arc.util.Log;
@@ -100,6 +101,8 @@ public class MindustryToolPluginLoader extends Plugin {
 
     @Override
     public void init() {
+        Core.settings.put("startedAt", System.currentTimeMillis());
+
         try {
             checkAndUpdate();
         } catch (Exception error) {
