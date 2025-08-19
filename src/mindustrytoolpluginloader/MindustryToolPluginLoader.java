@@ -220,12 +220,12 @@ public class MindustryToolPluginLoader extends Plugin {
 
             httpConn.disconnect();
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
             File file = new File(savePath);
-            if (file.exists()){
+            if (file.exists()) {
                 file.delete();
             }
+
+            throw new RuntimeException(e);
         }
     }
 
@@ -355,12 +355,12 @@ public class MindustryToolPluginLoader extends Plugin {
             Log.info("Plugin updated and reloaded: " + plugin.name);
 
         } catch (PluginRuntimeException e) {
+            plugins.remove(plugin.id);
             path.toFile().delete();
         } catch (Exception e) {
+            plugins.remove(plugin.id);
             Log.err(e);
             throw new RuntimeException("Failed to load plugin: " + plugin.name, e);
-        } finally {
-            plugins.remove(plugin.id);
         }
     }
 }
