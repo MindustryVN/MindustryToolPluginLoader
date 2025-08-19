@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginWrapper;
 
 import arc.util.CommandHandler;
@@ -23,7 +24,6 @@ import arc.Core;
 import arc.Events;
 import arc.files.Fi;
 import arc.util.Log;
-import arc.util.Http.HttpStatusException;
 import mindustry.game.EventType;
 
 import java.io.BufferedInputStream;
@@ -348,10 +348,13 @@ public class MindustryToolPluginLoader extends Plugin {
 
             Log.info("Plugin updated and reloaded: " + plugin.name);
 
+        } catch (PluginRuntimeException e) {
+            path.toFile().delete();
         } catch (Exception e) {
-            plugins.remove(plugin.id);
             Log.err(e);
             throw new RuntimeException("Failed to load plugin: " + plugin.name, e);
+        } finally {
+            plugins.remove(plugin.id);
         }
     }
 }
