@@ -27,6 +27,7 @@ import arc.util.Log;
 import mindustry.game.EventType;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -220,6 +221,11 @@ public class MindustryToolPluginLoader extends Plugin {
             httpConn.disconnect();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            File file = new File(savePath);
+            if (file.exists()){
+                file.delete();
+            }
         }
     }
 
